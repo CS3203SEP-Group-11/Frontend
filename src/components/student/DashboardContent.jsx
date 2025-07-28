@@ -1,8 +1,23 @@
 import { BookOpen, Award, TrendingUp, Play, Calendar } from 'lucide-react';
 import CourseCard from '../CourseCard';
 import { currentUser, courses, certificates } from '../../data/dummyData';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom'
+import { getUserSession } from '../../utils/sessionUser';
 
 const DashboardContent = ({ inProgressCourses, completedCourses, enrolledCourses, onCourseSelect }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = getUserSession();
+    setCurrentUser(user);
+    console.log('Current User:', user);
+    if (!user) {
+      console.error('No user session found. Redirecting to login.');
+      navigate('/login'); // Assuming you have a navigate function available
+    }
+  }, []);
 
   return (
     <div className="space-y-8">

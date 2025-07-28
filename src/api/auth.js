@@ -74,12 +74,6 @@ export async function googleAuthentication(token) {
 }
 
 export async function logout() {
-  try {
-    // Clear user data from cookies
-    return { success: true };
-  } catch (err) {
-    // Even if API call fails, still clear local data
-    return { success: true };
-  }
+  // This function can be used to clear any client-side session or token
 }
 

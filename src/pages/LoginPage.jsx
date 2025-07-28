@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
 import { useTheme } from '../App'
+import { login } from '../api/auth'
+import { saveUserSession } from '../utils/sessionUser'
 
 const LoginPage = () => {
   const { isDarkMode } = useTheme()
@@ -48,22 +50,31 @@ const LoginPage = () => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    const newErrors = validateForm()
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
+    e.preventDefault();
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length === 0) {
+      setIsLoading(true);
+      login(formData.email, formData.password)
+        .then((res) => {
+          // Save user data
+          const userData = {
+            userId: res.userId,
+            name: res.name,
+            email: res.email,
+            role: res.role,
+            token: res.token,
+            tokenType: res.tokenType || 'Bearer'
+          };
+          saveUserSession(userData)
+          navigate('/student-dashboard');
+        })
+        .catch((err) => {
+          console.log('Login failed. Please check your credentials.');
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      setErrors(newErrors);
     }
-    
-    setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Login attempt:', formData)
-      setIsLoading(false)
-      // Navigate to dashboard or home
-      navigate('/student-dashboard')
-    }, 1500)
   }
 
   const handleGoogleLogin = () => {
