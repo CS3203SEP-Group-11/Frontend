@@ -1,37 +1,30 @@
-import { BookOpen, Award, TrendingUp, Play, Calendar } from 'lucide-react';
+import { BookOpen, Award, TrendingUp, User } from 'lucide-react';
 import CourseCard from '../CourseCard';
 import { currentUser, courses, certificates } from '../../data/dummyData';
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'
-import { getUserSession } from '../../utils/sessionUser';
+import { useAuth } from '../../context/AuthContext';
 
 const DashboardContent = ({ inProgressCourses, completedCourses, enrolledCourses, onCourseSelect }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const user = getUserSession();
-    setCurrentUser(user);
-    console.log('Current User:', user);
-    if (!user) {
-      console.error('No user session found. Redirecting to login.');
-      navigate('/login'); // Assuming you have a navigate function available
-    }
-  }, []);
+  const { user } = useAuth();
 
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl p-8 text-white">
         <div className="flex items-center space-x-4">
-          <img
-            src={currentUser?.avatar || '/default-avatar.png'}
-            alt={currentUser?.name || 'User'}
-            className="w-16 h-16 rounded-full object-cover border-2 border-white"
-          />
+          {user?.profilePictureUrl ? (
+            <img
+              src={user.profilePictureUrl}
+              alt={user?.firstName || 'User'}
+              className="w-16 h-16 rounded-full object-cover border-2 border-white"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-white/20 border-2 border-white flex items-center justify-center">
+              <User className="w-8 h-8 text-white" />
+            </div>
+          )}
           <div>
             <h1 className="text-2xl font-bold">
-              Welcome back, {currentUser?.firstName || 'User'}!
+              Welcome back, {user?.firstName || 'User'}!
             </h1>
             <p className="text-primary-100">Ready to continue your learning journey?</p>
           </div>

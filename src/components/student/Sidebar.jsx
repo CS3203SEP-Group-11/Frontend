@@ -1,6 +1,7 @@
 import { X, LayoutDashboard, BookOpen, Award, User, LogOut, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../App';
+import { logout } from '../../api/auth';
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab }) => {
   const { isDarkMode, toggleTheme } = useTheme();
@@ -64,7 +65,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab }) =
           )}
         </button>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => logout().then(() => navigate('/'))}
           className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
         >
           <LogOut className="w-5 h-5" />
