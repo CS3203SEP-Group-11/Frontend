@@ -1,79 +1,77 @@
-const API_BASE_URL = import.meta.env.API_BASE_URL || 'http://localhost:8080/api';
+import api from './axios';
 
 export async function signup(firstName, lastName, email, password) {
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        password: password,
-      })
+    const response = await api.post('/auth/register', {
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password,
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Signup failed');
-    }
-
-    return await response.json();
+    return response.data;
   } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Signup failed');
+    }
     throw err;
   }
 }
 
 export async function login(email, password) {
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email,
-        password: password
-      })
+    const response = await api.post('/auth/login', {
+      email: email,
+      password: password
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Login failed');
-    }
-
-    return await response.json();
+    return response.data;
   } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Login failed');
+    }
     throw err;
   }
 }
 
-export async function googleAuthentication(token) {
+export async function googleLogin(token) {
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/google`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        idToken: token
-      })
-    });
+    const response = await api.post('/auth/google/login', {
+      token: token
+     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Google authentication failed');
-    }
-
-    return await response.json();
+    return response.data;
   } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Google authentication failed');
+    }
+    throw err;
+  }
+}
+
+export async function googleSignup(token) {
+  try {
+    const response = await api.post('/auth/google/register', {
+      token: token
+     });
+
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Google authentication failed');
+    }
     throw err;
   }
 }
 
 export async function logout() {
-  // This function can be used to clear any client-side session or token
+  try {
+    await api.get('/auth/logout');
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Logout failed');
+    }
+    throw err;
+  }
 }
 
