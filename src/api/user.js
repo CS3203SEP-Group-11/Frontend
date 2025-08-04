@@ -2,11 +2,7 @@ import api from './axios';
 
 export async function getMyProfile() {
   try {
-    const response = await api.get('/users/me', {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming token is stored in localStorage
-      }
-    });
+    const response = await api.get('/users/me');
     return response.data;
   } catch (err) {
     if (err.response?.data) {
@@ -18,7 +14,8 @@ export async function getMyProfile() {
 
 export async function getUserById(userId) {
   try {
-    const response = await axios.get(`${API_BASE_URL}/users/${userId}`);
+    // Fixed: Use 'api' instead of 'axios' and remove API_BASE_URL
+    const response = await api.get(`/users/${userId}`);
     return response.data;
   } catch (err) {
     if (err.response?.data) {
@@ -30,11 +27,8 @@ export async function getUserById(userId) {
 
 export async function updateUserById(userId, userData) {
   try {
-    const response = await axios.put(`${API_BASE_URL}/users/${userId}`, userData, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    });
+    // Fixed: Use 'api' instead of 'axios' and remove API_BASE_URL
+    const response = await api.put(`/users/${userId}`, userData);
     return response.data;
   } catch (err) {
     if (err.response?.data) {
