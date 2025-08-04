@@ -89,7 +89,7 @@ const CourseCard = ({
               </p>
             </div>
             
-            <div className="hidden sm:flex items-center space-x-3 lg:space-x-6 flex-shrink-0 ml-2 sm:ml-4">
+            <div className="hidden sm:flex items-center space-x-3 lg:space-x-6 flex-shrink-0 ml-2 mr-2 sm:ml-4">
               <div className="flex items-center space-x-1">
                 <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
                 <span className="text-xs sm:text-sm font-medium">{rating}</span>

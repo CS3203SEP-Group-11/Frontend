@@ -235,96 +235,23 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Choose Your Plan
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-              Select the perfect plan for your learning journey
-            </p>
-
-            {/* Billing toggle */}
-            <div className="flex items-center justify-center mb-8">
-              <span className={`mr-3 ${!isYearly ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-500 dark:text-gray-400'}`}>
-                Monthly
-              </span>
-              <button
-                onClick={() => setIsYearly(!isYearly)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  isYearly ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    isYearly ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-              <span className={`ml-3 ${isYearly ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-500 dark:text-gray-400'}`}>
-                Yearly
-              </span>
-              {isYearly && (
-                <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-medium rounded-full">
-                  Save 20%
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {pricingPlans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`bg-white dark:bg-gray-800 rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
-                  plan.popular
-                    ? 'border-primary-500 transform scale-105'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'
-                }`}
-              >
-                {plan.popular && (
-                  <div className="bg-primary-600 text-white text-center py-2 rounded-t-xl">
-                    <span className="text-sm font-semibold">Most Popular</span>
-                  </div>
-                )}
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                    {plan.name}
-                  </h3>
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                      ${isYearly ? plan.price.yearly : plan.price.monthly}
-                    </span>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      /{isYearly ? 'year' : 'month'}
-                    </span>
-                  </div>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-center">
-                        <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                        <span className="text-gray-600 dark:text-gray-400">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    onClick={() => navigate('/student-dashboard')}
-                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
-                      plan.popular
-                        ? 'bg-primary-600 text-white hover:bg-primary-700'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                  >
-                    Get Started
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Pricing Section Button
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Ready to Level Up?
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
+            Check out our flexible pricing plans and start your learning journey today!
+          </p>
+          <button
+            onClick={() => navigate('/pricing')}
+            className="px-8 py-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-lg"
+          >
+            View Pricing Plans
+          </button>
         </div>
-      </section>
+      </section> */}
 
       <Footer />
 
