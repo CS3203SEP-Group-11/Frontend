@@ -38,18 +38,12 @@ const Header = ({ isLoggedIn = false, userRole = 'student' }) => {
             >
               Courses
             </Link>
-            <a 
-              href="#pricing" 
+            <Link 
+              to="/pricing" 
               className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
             >
               Pricing
-            </a>
-            <a 
-              href="#about" 
-              className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-            >
-              About
-            </a>
+            </Link>
           </nav>
 
           {/* Right side actions */}

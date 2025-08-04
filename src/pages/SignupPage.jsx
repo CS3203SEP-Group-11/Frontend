@@ -4,9 +4,11 @@ import { Eye, EyeOff, Mail, Lock, User, Check } from 'lucide-react'
 import { useTheme } from '../App'
 import { googleSignup, signup } from '../api/auth'
 import { GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../context/AuthContext'
 
 const SignupPage = () => {
   const { isDarkMode } = useTheme()
+  const { refreshUser } = useAuth()
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     firstName: '',
@@ -84,8 +86,9 @@ const SignupPage = () => {
     if (Object.keys(newErrors).length === 0) {
       setIsLoading(true);
       signup(formData.firstName, formData.lastName, formData.email, formData.password)
-        .then(() => {
+        .then(async () => {
           console.log('Signup successful!');
+          await refreshUser()
           navigate('/student-dashboard');
         })
         .catch((err) => {
@@ -102,8 +105,9 @@ const SignupPage = () => {
     setIsLoading(true);
         const { credential } = credentialResponse;
         googleSignup(credential)
-          .then(() => {
+          .then(async () => {
             console.log('Google signup successful!');
+            await refreshUser()
             navigate('/student-dashboard');
           })
           .catch((error) => {
