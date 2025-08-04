@@ -45,9 +45,9 @@ const ProfileContent = () => {
     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
       <div className="flex items-center space-x-6 mb-8">
-        {previewImage || user?.profilePictureUrl ? (
+        {previewImage || user?.profileImageUrl ? (
           <img 
-            src={previewImage || user.profilePictureUrl} 
+            src={previewImage || user.profileImageUrl} 
             alt={`${user?.firstName} ${user?.lastName}`} 
             className="w-24 h-24 rounded-full object-cover" 
           />

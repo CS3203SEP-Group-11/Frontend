@@ -1312,18 +1312,6 @@ export const pricingPlans = [
     popular: false
   },
   {
-    id: 2,
-    name: "Basic",
-    price: { monthly: 29, yearly: 290 },
-    features: [
-      "Access to 5 premium courses per month",
-      "Downloadable resources",
-      "Standard completion certificates",
-      "Community support"
-    ],
-    popular: false
-  },
-  {
     id: 3,
     name: "Pro",
     price: { monthly: 49, yearly: 490 },

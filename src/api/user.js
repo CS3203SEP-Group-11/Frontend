@@ -2,11 +2,7 @@ import api from './axios';
 
 export async function getMyProfile() {
   try {
-    const response = await api.get('/users/me', {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming token is stored in localStorage
-      }
-    });
+    const response = await api.get('/users/me');
     return response.data;
   } catch (err) {
     if (err.response?.data) {
