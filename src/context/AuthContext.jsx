@@ -11,7 +11,6 @@ export const AuthProvider = ({ children }) => {
   const fetchUser = async () => {
     try {
       const user = await getMyProfile();
-      console.log('Fetched user:', user);
       setUser(user);
       setIsLoggedIn(true);
     } catch (err) {

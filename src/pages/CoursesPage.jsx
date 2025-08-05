@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getAllCourses } from '../api/course'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -6,12 +7,12 @@ import CourseCard from '../components/CourseCard'
 import SearchAndFilter from '../components/SearchAndFilter'
 import Pagination from '../components/Pagination'
 import Breadcrumb from '../components/Breadcrumb'
-import { courses } from '../data/dummyData'
 import { Grid, List, Filter, SortDesc, SortAsc } from 'lucide-react'
 
 const CoursesPage = () => {
   const navigate = useNavigate()
-  const [filteredCourses, setFilteredCourses] = useState(courses)
+  const [courses, setCourses] = useState([])
+  const [filteredCourses, setFilteredCourses] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({ category: null, level: null })
   const [sortBy, setSortBy] = useState('title')
@@ -19,20 +20,33 @@ const CoursesPage = () => {
   const [viewMode, setViewMode] = useState('grid') // 'grid' or 'list'
   const [currentPage, setCurrentPage] = useState(1)
   const coursesPerPage = 12
+  
+  // Get unique categories and levels from courses
+  const categories = ['All Categories', ...new Set(courses.map(course => course.category).filter(Boolean))]
+  const levels = ['All Levels', ...new Set(courses.map(course => course.level).filter(Boolean))]
 
-  // Get unique categories from courses
-  const categories = ['All Categories', ...new Set(courses.map(course => course.category))]
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const data = await getAllCourses();
+        console.log('Fetched courses:', data)
+        setCourses(data);
+      } catch (err) {
+        console.error('Failed to fetch courses:', err.message);
+      }
+    };
+    fetchCourses();
+  }, [])
 
   // Filter and sort courses
   useEffect(() => {
     let filtered = courses.filter(course => {
       const matchesSearch = searchTerm === '' || 
-        course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (course.title && course.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (course.description && course.description.toLowerCase().includes(searchTerm.toLowerCase()))
       
-      const matchesCategory = !filters.category || course.category === filters.category
-      const matchesLevel = !filters.level || course.level === filters.level
+      const matchesCategory = !filters.category || filters.category === 'All Categories' || course.category === filters.category
+      const matchesLevel = !filters.level || filters.level === 'All Levels' || course.level === filters.level
       
       return matchesSearch && matchesCategory && matchesLevel
     })
@@ -43,28 +57,34 @@ const CoursesPage = () => {
       
       switch (sortBy) {
         case 'title':
-          aValue = a.title.toLowerCase()
-          bValue = b.title.toLowerCase()
+          aValue = a.title?.toLowerCase() || ''
+          bValue = b.title?.toLowerCase() || ''
           break
         case 'price':
-          aValue = a.price
-          bValue = b.price
+          aValue = a.price?.amount || 0
+          bValue = b.price?.amount || 0
           break
         case 'rating':
-          aValue = a.rating
-          bValue = b.rating
+          aValue = a.rating?.average || 0
+          bValue = b.rating?.average || 0
           break
         case 'students':
-          aValue = a.students
-          bValue = b.students
+          aValue = a.enrollmentCount || 0
+          bValue = b.enrollmentCount || 0
           break
         case 'duration':
-          aValue = parseInt(a.duration)
-          bValue = parseInt(b.duration)
+          aValue = a.duration || 0
+          bValue = b.duration || 0
+          break
+        case 'level':
+          // Define level order for sorting
+          const levelOrder = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3 }
+          aValue = levelOrder[a.level] || 0
+          bValue = levelOrder[b.level] || 0
           break
         default:
-          aValue = a.title.toLowerCase()
-          bValue = b.title.toLowerCase()
+          aValue = a.title?.toLowerCase() || ''
+          bValue = b.title?.toLowerCase() || ''
       }
 
       if (sortOrder === 'asc') {
@@ -76,7 +96,7 @@ const CoursesPage = () => {
 
     setFilteredCourses(filtered)
     setCurrentPage(1) // Reset to first page when filters change
-  }, [searchTerm, filters, sortBy, sortOrder])
+  }, [searchTerm, filters, sortBy, sortOrder, courses])
 
   // Pagination
   const totalPages = Math.ceil(filteredCourses.length / coursesPerPage)
@@ -119,6 +139,7 @@ const CoursesPage = () => {
             onSearch={setSearchTerm}
             onFilter={setFilters}
             categories={categories}
+            levels={levels}
             placeholder="Search courses, instructors, or topics..."
           />
         </div>
@@ -145,6 +166,7 @@ const CoursesPage = () => {
                 <option value="rating">Rating</option>
                 <option value="students">Students</option>
                 <option value="duration">Duration</option>
+                <option value="level">Level</option>
               </select>
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
