@@ -1,5 +1,5 @@
 import { BookOpen } from 'lucide-react';
-import CourseCard from '../CourseCard';
+import CourseProgressCard from '../CourseProgressCard';
 import Pagination from '../Pagination';
 import SearchAndFilter from '../SearchAndFilter';
 import Breadcrumb from '../Breadcrumb';
@@ -39,7 +39,7 @@ const CoursesContent = ({
     {paginatedCourses.length > 0 ? (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedCourses.map((course) => (
-          <CourseCard key={course.id} course={course} showProgress={true} onContinue={continueLearning} onCourseSelect={onCourseSelect} />
+          <CourseProgressCard key={course.id} course={course} showProgress={true} onContinue={continueLearning} onCourseSelect={onCourseSelect} />
         ))}
       </div>
     ) : (
@@ -60,7 +60,7 @@ const CoursesContent = ({
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">In Progress ({inProgressCourses.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {inProgressCourses.slice(0, 3).map((course) => (
-                <CourseCard key={course.id} course={course} showProgress={true} onContinue={continueLearning} onCourseSelect={onCourseSelect} />
+                <CourseProgressCard key={course.id} course={course} showProgress={true} onContinue={continueLearning} onCourseSelect={onCourseSelect} />
               ))}
             </div>
           </div>
@@ -70,7 +70,7 @@ const CoursesContent = ({
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Completed ({completedCourses.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {completedCourses.slice(0, 3).map((course) => (
-                <CourseCard key={course.id} course={course} showProgress={true} onCourseSelect={onCourseSelect} />
+                <CourseProgressCard key={course.id} course={course} showProgress={true} onCourseSelect={onCourseSelect} />
               ))}
             </div>
           </div>
@@ -80,7 +80,7 @@ const CoursesContent = ({
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Not Started ({notStartedCourses.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {notStartedCourses.slice(0, 3).map((course) => (
-                <CourseCard key={course.id} course={course} showProgress={false} onCourseSelect={onCourseSelect} />
+                <CourseProgressCard key={course.id} course={course} showProgress={false} onCourseSelect={onCourseSelect} />
               ))}
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { BookOpen, Award, TrendingUp, User } from 'lucide-react';
-import CourseCard from '../CourseCard';
+import CourseProgressCard from '../CourseProgressCard';
 import { currentUser, courses, certificates } from '../../data/dummyData';
 import { useAuth } from '../../context/AuthContext';
 
@@ -72,7 +72,7 @@ const DashboardContent = ({ inProgressCourses, completedCourses, enrolledCourses
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Continue Learning</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {inProgressCourses.slice(0, 2).map((course) => (
-              <CourseCard key={course.id} course={course} showProgress={true} onCourseSelect={onCourseSelect} />
+              <CourseProgressCard key={course.id} course={course} showProgress={true} onCourseSelect={onCourseSelect} />
             ))}
           </div>
         </div>
