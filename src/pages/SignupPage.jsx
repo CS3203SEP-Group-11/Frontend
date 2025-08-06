@@ -89,7 +89,7 @@ const SignupPage = () => {
         .then(async () => {
           console.log('Signup successful!');
           await refreshUser()
-          navigate('/student-dashboard');
+          navigate('/');
         })
         .catch((err) => {
           console.log('Signup failed. Please check your credentials.');
@@ -108,7 +108,7 @@ const SignupPage = () => {
           .then(async () => {
             console.log('Google signup successful!');
             await refreshUser()
-            navigate('/student-dashboard');
+            navigate('/');
           })
           .catch((error) => {
             console.error('Google login failed:', error);
