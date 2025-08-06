@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import PricingPage from './pages/PricingPage'
+import ShoppingCartPage from './pages/ShoppingCartPage'
 
 // Theme Context for dark mode
 const ThemeContext = createContext()
@@ -44,6 +45,7 @@ function App() {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/courses" element={<CoursesPage />} />
+              <Route path="/cart" element={<ShoppingCartPage />} />
               <Route path="/course/:id" element={<CourseDetailPage />} />
               <Route path="/student-dashboard" element={<StudentDashboard />} />
               <Route path="/instructor-dashboard" element={<InstructorDashboard />} />

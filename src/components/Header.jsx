@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Moon, Sun, User, LogOut, GraduationCap, ChevronDown, Menu, X } from 'lucide-react'
+import { Moon, Sun, User, LogOut, GraduationCap, Menu, X, ShoppingCart } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '../App'
 import { useAuth } from '../context/AuthContext'
@@ -11,6 +11,7 @@ const Header = () => {
   const { isLoggedIn, user } = useAuth()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [cartItemsCount, setCartItemsCount] = useState(3) // This would come from cart context/state
   const userMenuRef = useRef(null)
 
   // Close dropdown when clicking outside
@@ -89,6 +90,22 @@ const Header = () => {
 
             {isLoggedIn ? (
               <div className="flex items-center space-x-2">
+                {/* Cart Button */}
+                <div className="relative">
+                  <button
+                    onClick={() => navigate('/cart')}
+                    className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 shadow-sm"
+                    aria-label="Shopping Cart"
+                  >
+                    <ShoppingCart className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                    {cartItemsCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                      </span>
+                    )}
+                  </button>
+                </div>
+
                 {/* User Menu */}
                 <div className="relative" ref={userMenuRef}>
                   <button
