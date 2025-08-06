@@ -60,7 +60,7 @@ const LoginPage = () => {
         .then(async () => {
           console.log('Login successful!');
           await refreshUser()
-          navigate('/student-dashboard');
+          navigate('/');
         })
         .catch((err) => {
           console.log('Login failed. Please check your credentials.');
@@ -78,7 +78,7 @@ const LoginPage = () => {
       .then(async () => {
         console.log('Google login successful!');
         await refreshUser()
-        navigate('/student-dashboard');
+        navigate('/');
       })
       .catch((error) => {
         console.error('Google login failed:', error);

@@ -1,82 +1,157 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Moon, Sun, User, LogOut } from 'lucide-react'
+import { Moon, Sun, User, LogOut, GraduationCap, ChevronDown, Menu, X } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '../App'
+import { useAuth } from '../context/AuthContext'
+import { logout } from '../api/auth';
 
-const Header = ({ isLoggedIn = false, userRole = 'student' }) => {
+const Header = () => {
   const { isDarkMode, toggleTheme } = useTheme()
   const navigate = useNavigate()
+  const { isLoggedIn, user } = useAuth()
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const userMenuRef = useRef(null)
 
-  const handleDashboardClick = () => {
-    if (userRole === 'instructor') {
-      navigate('/instructor-dashboard')
-    } else {
-      navigate('/student-dashboard')
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false)
+      }
     }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      navigate('/')
+      window.location.reload()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+    setIsUserMenuOpen(false)
   }
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <header className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">L</span>
-          </div>
-          <span className="text-xl font-bold text-gray-900 dark:text-white">LevelUp</span>
-        </Link>          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <Link to="/" className="flex items-center space-x-3 group">
+            <div className="w-10 h-10 bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-primary-500/25 transition-shadow duration-300">
+              <span className="text-white font-bold text-lg">L</span>
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+              LevelUp
+            </span>
+          </Link>          {/* Navigation */}
+          <nav className="hidden md:flex items-center space-x-1">
             <Link 
               to="/" 
-              className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200 font-medium"
             >
               Home
             </Link>
             <Link 
               to="/courses" 
-              className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200 font-medium"
             >
               Courses
             </Link>
             <Link 
               to="/pricing" 
-              className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200 font-medium"
             >
               Pricing
             </Link>
           </nav>
 
           {/* Right side actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 shadow-sm"
               aria-label="Toggle theme"
             >
               {isDarkMode ? (
-                <Sun className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                <Sun className="w-5 h-5 text-amber-500" />
               ) : (
-                <Moon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                <Moon className="w-5 h-5 text-indigo-500" />
               )}
             </button>
 
             {isLoggedIn ? (
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleDashboardClick}
-                  className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  <User className="w-4 h-4" />
-                  <span>Dashboard</span>
-                </button>
-                <button
-                  onClick={() => navigate('/')}
-                  className="p-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                  aria-label="Logout"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
+              <div className="flex items-center space-x-2">
+                {/* User Menu */}
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="p-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 transition-all duration-200 hover:scale-105 shadow-sm"
+                  >
+                    <User className="w-5 h-5 text-white" />
+                  </button>
+
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex flex-col items-center">
+                        {user?.profileImageUrl && (
+                          <img
+                            src={user.profileImageUrl}
+                            alt={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : ''}
+                            className="w-16 h-16 rounded-full object-cover border-2 border-white mx-auto"
+                          />
+                        )}
+                        <p className="text-sm font-medium text-gray-900 dark:text-white text-center">
+                          {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : ''}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                          {user?.email || ''}
+                        </p>
+                      </div>
+                      
+                      <button
+                        onClick={() => {
+                          navigate('/student-dashboard')
+                          setIsUserMenuOpen(false)
+                        }}
+                        className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                      >
+                        <User className="w-4 h-4" />
+                        <span>Student Dashboard</span>
+                      </button>
+
+                      {user?.role === 'INSTRUCTOR' && (
+                        <button
+                          onClick={() => {
+                            navigate('/instructor-dashboard')
+                            setIsUserMenuOpen(false)
+                          }}
+                          className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                        >
+                          <GraduationCap className="w-4 h-4" />
+                          <span>Instructor Dashboard</span>
+                        </button>
+                      )}
+
+                      <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center space-x-3 px-4 py-3 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="flex items-center space-x-3">
@@ -94,8 +169,47 @@ const Header = ({ isLoggedIn = false, userRole = 'student' }) => {
                 </button>
               </div>
             )}
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              ) : (
+                <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4 space-y-2">
+            <Link 
+              to="/" 
+              className="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200 font-medium"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/courses" 
+              className="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200 font-medium"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Courses
+            </Link>
+            <Link 
+              to="/pricing" 
+              className="block px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200 font-medium"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Pricing
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   )

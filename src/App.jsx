@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage'
 import StudentDashboard from './pages/StudentDashboard'
 import InstructorDashboard from './pages/InstructorDashboard'
 import CoursesPage from './pages/CoursesPage'
+import CourseDetailPage from './pages/CourseDetailPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
@@ -43,6 +44,7 @@ function App() {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/courses" element={<CoursesPage />} />
+              <Route path="/course/:id" element={<CourseDetailPage />} />
               <Route path="/student-dashboard" element={<StudentDashboard />} />
               <Route path="/instructor-dashboard" element={<InstructorDashboard />} />
               <Route path="/pricing" element={<PricingPage />} />

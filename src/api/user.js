@@ -14,7 +14,7 @@ export async function getMyProfile() {
 
 export async function getUserById(userId) {
   try {
-    const response = await axios.get(`${API_BASE_URL}/users/${userId}`);
+    const response = await api.get(`/users/${userId}`);
     return response.data;
   } catch (err) {
     if (err.response?.data) {
@@ -26,15 +26,23 @@ export async function getUserById(userId) {
 
 export async function updateUserById(userId, userData) {
   try {
-    const response = await axios.put(`${API_BASE_URL}/users/${userId}`, userData, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    });
+    const response = await api.put(`/users/${userId}`, userData);
     return response.data;
   } catch (err) {
     if (err.response?.data) {
       throw new Error(err.response.data.message || 'Failed to update user');
+    }
+    throw err;
+  }
+}
+
+export async function getInstructorById(instructorId) {
+  try {
+    const response = await api.get(`/instructors/${instructorId}`);
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Failed to fetch instructor');
     }
     throw err;
   }

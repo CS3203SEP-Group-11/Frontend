@@ -1,4 +1,5 @@
 import { Star, Clock, Users, BookOpen, Layers, Award, Languages, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const CourseCard = ({ 
   course, 
@@ -6,7 +7,10 @@ const CourseCard = ({
   className = "",
   viewMode = "grid" // "grid" or "list"
 }) => {
+  const navigate = useNavigate();
+  
   const {
+    id,
     title,
     description,
     category,
@@ -16,20 +20,35 @@ const CourseCard = ({
     duration,
     rating,
     level,
-    thumbnailUrl
+    thumbnailUrl,
   } = course
+
+  // Handle different data formats
+  const courseId = id;
+  const studentCount = enrollmentCount || 0;
+  const courseImage = thumbnailUrl || 'https://via.placeholder.com/300x200?text=Course+Image';
+  const courseRating = typeof rating === 'number' ? rating : (rating?.average || 'N/A');
+  const coursePrice = typeof price === 'number' ? { amount: price, currency: 'USD' } : price;
+
+  const handleCourseClick = () => {
+    if (onCourseSelect) {
+      onCourseSelect(course);
+    } else {
+      navigate(`/course/${courseId}`);
+    }
+  };
 
   const isListView = viewMode === "list" || className.includes("flex-row")
 
   return (
     <div 
       className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-primary-300 dark:hover:border-primary-600 cursor-pointer group ${isListView ? 'flex flex-row' : ''} ${className}`}
-      onClick={() => onCourseSelect && onCourseSelect(course)}
+      onClick={handleCourseClick}
     >
       {/* Course Image */}
       <div className={`relative ${isListView ? 'w-24 sm:w-32 md:w-40 flex-shrink-0' : ''}`}>
         <img
-          src={thumbnailUrl || 'https://via.placeholder.com/300x200?text=Course+Image'}
+          src={courseImage}
           alt={title}
           className={`object-cover transition-transform duration-300 group-hover:scale-105 ${isListView ? 'w-full h-24 sm:h-32 md:h-40' : 'w-full h-28 sm:h-32'}`}
         />
@@ -84,12 +103,12 @@ const CourseCard = ({
               <div className="text-right flex-shrink-0">
                 <div className="flex items-center justify-end gap-1 mb-1">
                   <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                    {price && price.amount ? `${price.currency} ${price.amount}` : 'Free'}
+                    {coursePrice && coursePrice.amount ? `${coursePrice.currency} ${coursePrice.amount}` : 'Free'}
                   </span>
                 </div>
                 <div className="flex items-center justify-end space-x-1">
                   <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{rating && rating.average !== null ? rating.average : 'N/A'}</span>
+                  <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{courseRating}</span>
                   <Award className="w-3 h-3 sm:w-4 sm:h-4 text-primary-500 ml-1" />
                 </div>
               </div>
@@ -118,7 +137,7 @@ const CourseCard = ({
           <div className={`flex items-center text-sm text-gray-500 dark:text-gray-400 ${isListView ? 'gap-4 flex-wrap' : 'justify-between mb-2 sm:mb-3'}`}>
             <div className="flex items-center space-x-1 sm:space-x-2">
               <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="text-xs sm:text-sm">{enrollmentCount} enrolled</span>
+              <span className="text-xs sm:text-sm">{studentCount} enrolled</span>
             </div>
             <div className="flex items-center space-x-1 sm:space-x-2">
               <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
