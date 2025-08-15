@@ -199,7 +199,7 @@ const FileUploader = forwardRef(({
     <div className={`w-full ${className}`}>
       {/* Label */}
       {label && (
-        <label className="block mb-4 font-semibold text-gray-700 dark:text-gray-200 text-lg">
+        <label className="block mb-4 font-semibold text-gray-700 dark:text-gray-200 text-sm">
           {label}
         </label>
       )}

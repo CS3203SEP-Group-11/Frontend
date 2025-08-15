@@ -249,7 +249,7 @@ const CreateCourseContent = () => {
             <FileUploader
               ref={fileUploaderRef}
               lockedTypes={['DOCX','PDF','VIDEO']}
-              label="Course Image"
+              label="Course Thumbnail"
               className="w-full"
             />
           </div>
