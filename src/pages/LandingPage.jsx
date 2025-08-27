@@ -1,28 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   BookOpen, 
   Users, 
   Award, 
   Clock, 
-  CheckCircle, 
   Star,
   ChevronLeft,
   ChevronRight,
-  Play
 } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import CourseCard from '../components/CourseCard'
 import Modal from '../components/Modal'
-import { featuredCourses, testimonials, pricingPlans } from '../data/dummyData'
+import { testimonials } from '../data/dummyData'
+import { getAllCourses } from '../api/course'
 
 const LandingPage = () => {
   const navigate = useNavigate()
   const [currentTestimonial, setCurrentTestimonial] = useState(0)
-  const [isYearly, setIsYearly] = useState(false)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
-  const [previewCourse, setPreviewCourse] = useState(null)
+  const [featuredCourses, setFeaturedCourses] = useState([])
 
   const nextTestimonial = () => {
     setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
@@ -32,10 +30,18 @@ const LandingPage = () => {
     setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)
   }
 
-  const openCoursePreview = (course) => {
-    setPreviewCourse(course)
-    setIsPreviewOpen(true)
-  }
+  useEffect(() => {
+      const fetchCourses = async () => {
+        try {
+          const data = await getAllCourses();
+          console.log('Fetched courses:', data)
+          setFeaturedCourses(data);
+        } catch (err) {
+          console.error('Failed to fetch courses:', err.message);
+        }
+      };
+      fetchCourses();
+    }, [])
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
@@ -139,16 +145,11 @@ const LandingPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredCourses.map((course) => (
+            {featuredCourses.slice(0, 3).map((course) => (
               <div key={course.id} className="relative">
-                <CourseCard course={course} />
-                <button
-                  onClick={() => openCoursePreview(course)}
-                  className="absolute top-4 right-4 bg-white dark:bg-gray-800 p-2 rounded-full shadow-lg hover:shadow-xl transition-shadow"
-                  aria-label="Preview course"
-                >
-                  <Play className="w-5 h-5 text-primary-600" />
-                </button>
+                <CourseCard 
+                  course={course} 
+                />
               </div>
             ))}
           </div>
@@ -235,81 +236,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Pricing Section Button
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Ready to Level Up?
-          </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-            Check out our flexible pricing plans and start your learning journey today!
-          </p>
-          <button
-            onClick={() => navigate('/pricing')}
-            className="px-8 py-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-lg"
-          >
-            View Pricing Plans
-          </button>
-        </div>
-      </section> */}
-
       <Footer />
-
-      {/* Course Preview Modal */}
-      <Modal
-        isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        title={previewCourse?.title || "Course Preview"}
-        maxWidth="2xl"
-      >
-        {previewCourse && (
-          <div>
-            <img
-              src={previewCourse.image}
-              alt={previewCourse.title}
-              className="w-full h-48 object-cover rounded-lg mb-4"
-            />
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              {previewCourse.description}
-            </p>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">Instructor</span>
-                <p className="font-semibold">{previewCourse.instructor}</p>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">Duration</span>
-                <p className="font-semibold">{previewCourse.duration}</p>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">Level</span>
-                <p className="font-semibold">{previewCourse.level}</p>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500 dark:text-gray-400">Students</span>
-                <p className="font-semibold">{previewCourse.students.toLocaleString()}</p>
-              </div>
-            </div>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => {
-                  setIsPreviewOpen(false)
-                  navigate('/student-dashboard')
-                }}
-                className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Enroll Now - ${previewCourse.price}
-              </button>
-              <button
-                onClick={() => setIsPreviewOpen(false)}
-                className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   )
 }
