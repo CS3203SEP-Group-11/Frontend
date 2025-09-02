@@ -39,15 +39,15 @@ const FILE_TYPE_OPTIONS = [
 ];
 
 const FileUploader = forwardRef(({
-  lockedTypes = [],
+  allowedTypes = [],
   onFileSelect,
   label = 'Upload File',
   className = '',
 }, ref) => {
   // Available file types (excluding locked ones)
   const availableTypes = useMemo(
-    () => FILE_TYPE_OPTIONS.filter(opt => !lockedTypes.includes(opt.value)),
-    [lockedTypes]
+    () => FILE_TYPE_OPTIONS.filter(opt => allowedTypes.includes(opt.value)),
+    [allowedTypes]
   );
 
   // State

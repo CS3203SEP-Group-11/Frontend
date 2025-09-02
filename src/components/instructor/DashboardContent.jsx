@@ -6,18 +6,18 @@ const DashboardContent = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-8 text-white">
+      <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl p-8 text-white">
         <div className="flex items-center space-x-4">
           <img src={instructorUser.avatar} alt={instructorUser.name} className="w-16 h-16 rounded-full object-cover border-2 border-white" />
           <div>
             <h1 className="text-2xl font-bold">Welcome back, {instructorUser.name}!</h1>
-            <p className="text-purple-100">Ready to inspire more learners today?</p>
+            <p className="text-primary-100">Ready to inspire more learners today?</p>
           </div>
         </div>
       </div>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 dark:text-gray-400 text-sm">Total Students</p>
@@ -32,7 +32,7 @@ const DashboardContent = () => {
             <span className="text-sm">+{instructorStats.monthlyGrowth}% this month</span>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 dark:text-gray-400 text-sm">Total Courses</p>
@@ -43,7 +43,7 @@ const DashboardContent = () => {
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 dark:text-gray-400 text-sm">Total Earnings</p>
@@ -51,17 +51,6 @@ const DashboardContent = () => {
             </div>
             <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
               <DollarSign className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Pending Reviews</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{recentSubmissions.filter(s => s.status === 'pending').length}</p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
-              <FileText className="w-6 h-6 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
         </div>
@@ -91,28 +80,6 @@ const DashboardContent = () => {
                 <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
                   <Eye className="w-4 h-4" />
                 </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      {/* Recent Submissions */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Submissions</h2>
-          <button className="text-primary-600 dark:text-primary-400 hover:underline">View All</button>
-        </div>
-        <div className="space-y-4">
-          {recentSubmissions.slice(0, 3).map((submission) => (
-            <div key={submission.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">{submission.assignmentTitle}</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">by {submission.studentName} • {submission.courseName}</p>
-                <p className="text-gray-500 dark:text-gray-500 text-xs">Submitted {new Date(submission.submittedDate).toLocaleDateString()}</p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${submission.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'}`}>{submission.status}</span>
-                <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">Review</button>
               </div>
             </div>
           ))}

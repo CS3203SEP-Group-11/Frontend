@@ -248,7 +248,7 @@ const CreateCourseContent = () => {
           <div>
             <FileUploader
               ref={fileUploaderRef}
-              lockedTypes={['DOCX','PDF','VIDEO']}
+              allowedTypes={['IMAGE']}
               label="Course Thumbnail"
               className="w-full"
             />
