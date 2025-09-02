@@ -1,6 +1,6 @@
 import api from './axios';
 
-export async function getLessonByCourseId(courseId) {
+export async function getLessonsByCourseId(courseId) {
   try {
     const response = await api.get(`/lessons/course/${courseId}`);
     return response.data;
@@ -38,6 +38,7 @@ export async function createLesson(lessonData) {
 
 export async function updateLesson(lessonId, lessonData) {
   try {
+    console.log('Updating lesson:', lessonId, lessonData);
     const response = await api.put(`/lessons/${lessonId}`, lessonData);
     return response.data;
   } catch (err) {

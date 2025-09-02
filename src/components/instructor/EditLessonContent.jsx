@@ -2,38 +2,96 @@ import { useState, useEffect, useRef } from 'react';
 import { Save, X, Video, FileText, Text, FileQuestionMark } from 'lucide-react';
 import QuizBuilder from './QuizBuilder';
 import FileUploader from '../FileUploader';
+import { updateLesson } from '../../api/lesson';
+import VideoPlayer from '../VideoPlayer';
 
 const EditLessonContent = ({ lesson, onSave, onCancel }) => {
   const fileUploaderRef = useRef();
   const [formData, setFormData] = useState({
     title: '',
-    type: 'VIDEO',
+    contentType: 'TEXT',
     order: 1,
     status: 'DRAFT',
-    content: '',
-    fileUrl: '',
-    quizData: null,
-    uploadedFile: null
+    textContent: '',
+    contentUrl: null,
+    contentId: null,
+    quizId: null,
   });
+  const [quizData, setQuizData] = useState(null); // UI-only draft data
+  const [selectedFile, setSelectedFile] = useState(null); // UI-only selected file
+  const [isSaving, setIsSaving] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
     if (lesson) {
       setFormData({
         title: lesson.title || '',
-        type: lesson.type || 'VIDEO',
+        contentType: lesson.contentType || 'TEXT',
         order: lesson.order || 1,
         status: lesson.status || 'DRAFT',
-        content: lesson.content || '',
-        fileUrl: lesson.fileUrl || '',
-        quizData: lesson.quizData || null,
-        uploadedFile: lesson.uploadedFile || null
+        textContent: lesson.textContent || '',
+        contentUrl: lesson.contentUrl ?? null,
+        contentId: lesson.contentId ?? null,
+        quizId: lesson.quizId ?? null,
       });
+      setQuizData(lesson.quizData || null);
+      setSelectedFile(null);
     }
   }, [lesson]);
 
-  const handleSubmit = (e) => {
+  // Compute preview URL for VIDEO/PDF from selected file or existing contentUrl
+  useEffect(() => {
+    if (formData.contentType !== 'VIDEO' && formData.contentType !== 'PDF') {
+      setPreviewUrl(null);
+      return;
+    }
+    let url = null;
+    if (selectedFile) {
+      url = URL.createObjectURL(selectedFile);
+    } else if (formData.contentUrl) {
+      url = formData.contentUrl;
+    }
+    setPreviewUrl(url);
+    return () => {
+      if (url && selectedFile) URL.revokeObjectURL(url);
+    };
+  }, [selectedFile, formData.contentUrl, formData.contentType]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave && onSave(formData);
+    setSubmitError('');
+    setIsSaving(true);
+
+    try {
+      // Prepare base payload
+      const payload = {
+        title: formData.title,
+        contentType: formData.contentType,
+        order: Number(formData.order) || 1,
+        status: formData.status,
+        textContent: formData.contentType === 'TEXT' ? (formData.textContent || '') : null,
+        contentUrl: formData.contentType !== 'TEXT' ? (formData.contentUrl ?? null) : null,
+        contentId: formData.contentType !== 'TEXT' ? (formData.contentId ?? null) : null,
+        quizId: formData.contentType === 'QUIZ' ? (formData.quizId ?? null) : null,
+      };
+
+      // Upload file first for VIDEO/PDF if a new file is selected
+      if ((formData.contentType === 'VIDEO' || formData.contentType === 'PDF') && fileUploaderRef.current?.getSelectedFile()) {
+        const uploaded = await fileUploaderRef.current.uploadFile();
+        payload.contentUrl = uploaded?.fileUrl || null;
+        payload.contentId = uploaded?.id || null;
+      }
+      if (lesson?.id) payload.id = lesson.id;
+      if (lesson?.courseId) payload.courseId = lesson.courseId;
+
+      onSave && onSave(payload);
+
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to save lesson');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleChange = (field, value) => {
@@ -44,18 +102,11 @@ const EditLessonContent = ({ lesson, onSave, onCancel }) => {
   };
 
   const handleFileSelect = (file) => {
-    setFormData(prev => ({
-      ...prev,
-      uploadedFile: file,
-      fileName: file?.name || ''
-    }));
+    setSelectedFile(file || null);
   };
 
   const handleQuizChange = (quizData) => {
-    setFormData(prev => ({
-      ...prev,
-      quizData: quizData
-    }));
+    setQuizData(quizData || null);
   };
 
   const getLessonTypeIcon = (type) => {
@@ -104,13 +155,13 @@ const EditLessonContent = ({ lesson, onSave, onCancel }) => {
             Lesson Type
           </label>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {['VIDEO', 'TEXT', 'PDF', 'QUIZ'].map((type) => (
+            {['TEXT', 'VIDEO', 'PDF', 'QUIZ'].map((type) => (
               <button
                 key={type}
                 type="button"
-                onClick={() => handleChange('type', type)}
+                onClick={() => handleChange('contentType', type)}
                 className={`p-4 border rounded-lg transition-all ${
-                  formData.type === type
+                  formData.contentType === type
                     ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                     : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                 }`}
@@ -180,11 +231,11 @@ const EditLessonContent = ({ lesson, onSave, onCancel }) => {
           </label>
           
           {/* TEXT Content */}
-          {formData.type === 'TEXT' && (
+          {formData.contentType === 'TEXT' && (
             <div>
               <textarea
-                value={formData.content}
-                onChange={(e) => handleChange('content', e.target.value)}
+                value={formData.textContent}
+                onChange={(e) => handleChange('textContent', e.target.value)}
                 rows={8}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-vertical"
                 placeholder="Enter your lesson content here..."
@@ -197,7 +248,7 @@ const EditLessonContent = ({ lesson, onSave, onCancel }) => {
           )}
 
           {/* VIDEO Content */}
-          {formData.type === 'VIDEO' && (
+          {formData.contentType === 'VIDEO' && (
             <div>
               <FileUploader
                 ref={fileUploaderRef}
@@ -205,11 +256,24 @@ const EditLessonContent = ({ lesson, onSave, onCancel }) => {
                 onFileSelect={handleFileSelect}
                 label=""
               />
+              {previewUrl && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Preview
+                  </label>
+                  <VideoPlayer
+                    src={previewUrl}
+                    className="w-full max-h-[480px]"
+                    disableDownload
+                    disableRightClick
+                  />
+                </div>
+              )}
             </div>
           )}
 
           {/* PDF Content */}
-          {formData.type === 'PDF' && (
+          {formData.contentType === 'PDF' && (
             <div>
               <FileUploader
                 ref={fileUploaderRef}
@@ -217,21 +281,41 @@ const EditLessonContent = ({ lesson, onSave, onCancel }) => {
                 onFileSelect={handleFileSelect}
                 label=""
               />
+              {previewUrl && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Preview
+                  </label>
+                  <div className="w-full h-[600px] bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <iframe
+                      src={previewUrl}
+                      title="PDF Preview"
+                      className="w-full h-full"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* QUIZ Content */}
-          {formData.type === 'QUIZ' && (
+          {formData.contentType === 'QUIZ' && (
             <div>
               <QuizBuilder 
-                initialQuizData={formData.quizData}
+                initialQuizData={quizData}
                 onQuizChange={handleQuizChange}
               />
             </div>
           )}
+          
         </div>
 
         {/* Form Actions */}
+        {submitError && (
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
+            {submitError}
+          </div>
+        )}
         <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
           <button
             type="button"
@@ -242,10 +326,11 @@ const EditLessonContent = ({ lesson, onSave, onCancel }) => {
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2"
+            disabled={isSaving}
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-4 h-4" />
-            <span>Save Lesson</span>
+            <span>{isSaving ? 'Saving...' : 'Save Lesson'}</span>
           </button>
         </div>
       </form>

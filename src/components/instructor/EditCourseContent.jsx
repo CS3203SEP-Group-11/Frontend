@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Save } from 'lucide-react';
 import FileUploader from '../FileUploader';
 import LessonManager from './LessonManager';
+import { getLessonsByCourseId } from '../../api/lesson';
 
 import { getCourseById, updateCourse, updateCourseStatus, getAllCategories } from '../../api/course';
 import { deleteFile } from '../../api/files';
@@ -36,17 +37,10 @@ const EditCourseContent = ({ courseId, onBack }) => {
       setCourse(courseData);
       setCategoryInput(courseData.category || '');
       
-      // Initialize lessons from course data or create sample structure
-      setLessons(courseData.lessons || [
-        {
-          id: 1,
-          title: 'Introduction to the Course',
-          description: 'Overview of what you will learn',
-          type: 'video',
-          duration: 10,
-          order: 1
-        }
-      ]);
+      getLessonsByCourseId(courseId).then(lessonData => {
+        setLessons(lessonData || []);
+      });
+
     } catch (err) {
       console.error('Error fetching course:', err);
       setError(err.message || 'Failed to fetch course data');

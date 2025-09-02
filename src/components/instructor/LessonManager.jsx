@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Edit3, Video, FileText, Text, FileQuestionMark, ArrowUp, ArrowDown } from 'lucide-react';
 import EditLessonContent from './EditLessonContent';
+import { createLesson, deleteLesson, updateLesson } from '../../api/lesson';
 
 const LessonManager = ({ courseId, initialLessons = [] }) => {
   const [lessons, setLessons] = useState(initialLessons);
@@ -9,17 +10,19 @@ const LessonManager = ({ courseId, initialLessons = [] }) => {
 
   const addLesson = () => {
     const newLesson = {
-      id: Date.now(),
+      courseId: courseId,
       title: 'New Lesson',
-      type: 'VIDEO',
-      duration: 0,
+      contentType: 'TEXT',
       order: lessons.length + 1,
-      status: 'draft'
     };
-    const updatedLessons = [...lessons, newLesson];
-    setLessons(updatedLessons);
-    setEditingLesson(newLesson);
-    setIsEditing(true);
+    createLesson(newLesson).then((createdLesson) => {
+      const updatedLessons = [...lessons, createdLesson];
+      setLessons(updatedLessons);
+      setEditingLesson(createdLesson);
+      setIsEditing(true);
+    }).catch((error) => {
+      console.error("Error creating lesson:", error);
+    });
   };
 
   const onEditLesson = (lessonId, isNewLesson = false) => {
@@ -29,14 +32,16 @@ const LessonManager = ({ courseId, initialLessons = [] }) => {
   };
 
   const handleSaveLesson = (lessonData) => {
-    const updatedLessons = lessons.map(lesson =>
-      lesson.id === editingLesson.id
-        ? { ...lesson, ...lessonData }
-        : lesson
-    );
-    setLessons(updatedLessons);
-    setIsEditing(false);
-    setEditingLesson(null);
+    updateLesson(lessonData.id , lessonData).then(() => {
+      const updatedLessons = lessons.map(lesson =>
+        lesson.id === editingLesson.id
+          ? { ...lesson, ...lessonData }
+          : lesson
+      );
+      setLessons(updatedLessons);
+      setIsEditing(false);
+      setEditingLesson(null);
+    });
   };
 
   const handleCancelEdit = () => {
@@ -46,8 +51,10 @@ const LessonManager = ({ courseId, initialLessons = [] }) => {
 
   const removeLesson = (lessonId) => {
     if (window.confirm('Are you sure you want to delete this lesson?')) {
-      const updatedLessons = lessons.filter(lesson => lesson.id !== lessonId);
-      setLessons(updatedLessons);
+      deleteLesson(lessonId).then(() => {
+        const updatedLessons = lessons.filter(lesson => lesson.id !== lessonId);
+        setLessons(updatedLessons);
+      });
     }
   };
 
@@ -187,7 +194,7 @@ const LessonManager = ({ courseId, initialLessons = [] }) => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-3">
-                            {getLessonIcon(lesson.type)}
+                            {getLessonIcon(lesson.contentType)}
                             <div>
                               <div className="text-sm font-medium text-gray-900 dark:text-white">
                                 {lesson.title || 'Untitled Lesson'}
@@ -196,17 +203,17 @@ const LessonManager = ({ courseId, initialLessons = [] }) => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getContentTypeBadge(lesson.type)}`}>
-                            {lesson.type}
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getContentTypeBadge(lesson.contentType)}`}>
+                            {lesson.contentType}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            lesson.status === 'published' 
+                            lesson.status === 'PUBLISHED'
                               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                               : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                           }`}>
-                            {lesson.status || 'draft'}
+                            {lesson.status || 'DRAFT'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -243,8 +250,8 @@ const LessonManager = ({ courseId, initialLessons = [] }) => {
                   Total: {lessons.length} lessons
                 </div>
                 <div className="text-gray-600 dark:text-gray-400">
-                  Published: {lessons.filter(l => l.status === 'published').length} • 
-                  Draft: {lessons.filter(l => l.status === 'draft' || !l.status).length}
+                  Published: {lessons.filter(l => l.status === 'PUBLISHED').length} • 
+                  Draft: {lessons.filter(l => l.status === 'DRAFT' || !l.status).length}
                 </div>
               </div>
             </div>
