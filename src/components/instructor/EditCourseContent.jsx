@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Save } from 'lucide-react';
 import FileUploader from '../FileUploader';
 import LessonManager from './LessonManager';
+import { getLessonsByCourseId } from '../../api/lesson';
 
 import { getCourseById, updateCourse, updateCourseStatus, getAllCategories } from '../../api/course';
 import { deleteFile } from '../../api/files';
@@ -36,17 +37,10 @@ const EditCourseContent = ({ courseId, onBack }) => {
       setCourse(courseData);
       setCategoryInput(courseData.category || '');
       
-      // Initialize lessons from course data or create sample structure
-      setLessons(courseData.lessons || [
-        {
-          id: 1,
-          title: 'Introduction to the Course',
-          description: 'Overview of what you will learn',
-          type: 'video',
-          duration: 10,
-          order: 1
-        }
-      ]);
+      getLessonsByCourseId(courseId).then(lessonData => {
+        setLessons(lessonData || []);
+      });
+
     } catch (err) {
       console.error('Error fetching course:', err);
       setError(err.message || 'Failed to fetch course data');
@@ -158,8 +152,8 @@ const EditCourseContent = ({ courseId, onBack }) => {
     }
   };
 
-  const handleLessonsChange = (updatedLessons) => {
-    setLessons(updatedLessons);
+  const handleBackToLessons = () => {
+    setEditingLessonId(null);
   };
 
   const handleStatusChange = async (newStatus) => {
@@ -245,29 +239,6 @@ const EditCourseContent = ({ courseId, onBack }) => {
           </button>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Course</h1>
         </div>
-        <div className="flex items-center space-x-4">
-          {/* Course Status Selector */}
-          <div className="flex items-center space-x-3">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Status:
-            </label>
-            <select
-              value={course.status}
-              onChange={(e) => handleStatusChange(e.target.value)}
-              disabled={updatingStatus}
-              className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="DRAFT">Draft</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="ARCHIVED">Archived</option>
-            </select>
-          </div>
-          
-          {/* Status Badge */}
-          <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(course.status)}`}>
-            {course.status}
-          </span>
-        </div>
       </div>
 
       {/* Tab Navigation */}
@@ -311,36 +282,6 @@ const EditCourseContent = ({ courseId, onBack }) => {
           </p>
         </div>
       )}
-
-      {/* Status Guide */}
-      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div className="flex items-start space-x-2">
-            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 rounded text-xs font-medium">
-              DRAFT
-            </span>
-            <span className="text-gray-600 dark:text-gray-400">
-              Course is being prepared and not visible to students
-            </span>
-          </div>
-          <div className="flex items-start space-x-2">
-            <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 rounded text-xs font-medium">
-              PUBLISHED
-            </span>
-            <span className="text-gray-600 dark:text-gray-400">
-              Course is live and available for student enrollment
-            </span>
-          </div>
-          <div className="flex items-start space-x-2">
-            <span className="px-2 py-1 bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 rounded text-xs font-medium">
-              ARCHIVED
-            </span>
-            <span className="text-gray-600 dark:text-gray-400">
-              Course is hidden from catalog but accessible to enrolled students
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Course Details Tab */}
       {activeTab === 'details' && (
@@ -475,10 +416,64 @@ const EditCourseContent = ({ courseId, onBack }) => {
               </div>
             </div>
 
+            <div className="flex items-center space-x-4">
+              {/* Course Status Selector */}
+              <div className="flex items-center space-x-3">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Status
+                </label>
+                <select
+                  value={course.status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  disabled={updatingStatus}
+                  className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="DRAFT">Draft</option>
+                  <option value="PUBLISHED">Published</option>
+                  <option value="ARCHIVED">Archived</option>
+                </select>
+              </div>
+              
+              {/* Status Badge */}
+              <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(course.status)}`}>
+                {course.status}
+              </span>
+            </div>
+
+            {/* Status Guide */}
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="flex items-start space-x-2">
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 rounded text-xs font-medium">
+                    DRAFT
+                  </span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Course is being prepared and not visible to students
+                  </span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 rounded text-xs font-medium">
+                    PUBLISHED
+                  </span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Course is live and available for student enrollment
+                  </span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="px-2 py-1 bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 rounded text-xs font-medium">
+                    ARCHIVED
+                  </span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Course is hidden from catalog but accessible to enrolled students
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div>
               <FileUploader
                 ref={fileUploaderRef}
-                lockedTypes={['VIDEO', 'PDF', 'DOCX']}
+                allowedTypes={['IMAGE']}
                 label="Course Thumbnail (leave empty to keep current)"
                 className="w-full"
               />
@@ -512,7 +507,6 @@ const EditCourseContent = ({ courseId, onBack }) => {
         <LessonManager
           courseId={courseId}
           initialLessons={lessons}
-          onLessonsChange={handleLessonsChange}
         />
       )}
     </div>
