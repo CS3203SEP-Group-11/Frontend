@@ -117,10 +117,6 @@ const ProfileContent = () => {
             <input type="checkbox" defaultChecked className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-not-allowed opacity-60" disabled />
             <span className="ml-2 text-gray-700 dark:text-gray-300 opacity-60">Reminder notifications for lessons</span>
           </label>
-          <label className="flex items-center">
-            <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-not-allowed opacity-60" disabled />
-            <span className="ml-2 text-gray-700 dark:text-gray-300 opacity-60">Marketing emails</span>
-          </label>
         </div>
       </div>
       <div className="mt-8 flex justify-end space-x-4">
