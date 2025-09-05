@@ -175,6 +175,8 @@ const StudentDashboard = () => {
           setIsSidebarOpen={setIsSidebarOpen}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          setSelectedCourse={setSelectedCourse}
+          setSelectedLesson={setSelectedLesson}
         />
         
         {/* Overlay for mobile */}
