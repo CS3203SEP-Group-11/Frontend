@@ -1,4 +1,4 @@
-import { X, LayoutDashboard, BookOpen, Award, User, LogOut, Sun, Moon } from 'lucide-react';
+import { X, LayoutDashboard, BookOpen, Award, User, LogOut, Sun, Moon, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../App';
 import { logout } from '../../api/auth';
@@ -11,6 +11,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, set
     { id: 'courses', label: 'My Courses', icon: BookOpen },
     { id: 'certificates', label: 'Certificates', icon: Award },
     { id: 'profile', label: 'Profile', icon: User },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
   return (
