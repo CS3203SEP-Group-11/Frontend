@@ -51,10 +51,7 @@ const CoursesContent = ({ setActiveTab, onEditCourse }) => {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Courses</h1>
-          <button onClick={() => setActiveTab('create')} className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center space-x-2">
-            <Plus className="w-5 h-5" />
-            <span>Create New Course</span>
-          </button>
+          Create New Course
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (

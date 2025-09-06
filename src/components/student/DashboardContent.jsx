@@ -14,7 +14,7 @@ const DashboardContent = ({ inProgressCourses, completedCourses, enrolledCourses
           {user?.profileImageUrl ? (
             <img
               src={user.profileImageUrl}
-              alt={user?.firstName || 'User'}
+              alt={user?.firstName || ''}
               className="w-16 h-16 rounded-full object-cover border-2 border-white"
             />
           ) : (
@@ -24,7 +24,7 @@ const DashboardContent = ({ inProgressCourses, completedCourses, enrolledCourses
           )}
           <div>
             <h1 className="text-2xl font-bold">
-              Welcome back, {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : 'User'}!
+              Welcome back, {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : ''}!
             </h1>
             <p className="text-primary-100">Ready to continue your learning journey?</p>
           </div>
