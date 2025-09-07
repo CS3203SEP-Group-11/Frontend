@@ -11,7 +11,6 @@ export async function getMyProfile() {
     throw err;
   }
 }
-
 export async function getUserById(userId) {
   try {
     const response = await api.get(`/users/${userId}`);

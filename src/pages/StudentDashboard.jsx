@@ -8,6 +8,7 @@ import CertificatesContent from '../components/student/CertificatesContent';
 import ProfileContent from '../components/student/ProfileContent';
 import CourseDetailPage from '../components/student/CourseDetailPage';
 import LessonContentPage from '../components/student/LessonContentPage';
+import NotificationContent from '../components/student/NotificationContent';
 import { useTheme } from '../App'
 import { 
   currentUser, 
@@ -155,6 +156,8 @@ const StudentDashboard = () => {
         return <CertificatesContent setActiveTab={setActiveTab} />;
       case 'profile':
         return <ProfileContent />;
+      case 'notifications':
+        return <NotificationContent />;
       default:
         return (
           <DashboardContent
@@ -175,6 +178,8 @@ const StudentDashboard = () => {
           setIsSidebarOpen={setIsSidebarOpen}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          setSelectedCourse={setSelectedCourse}
+          setSelectedLesson={setSelectedLesson}
         />
         
         {/* Overlay for mobile */}

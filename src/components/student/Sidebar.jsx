@@ -1,9 +1,9 @@
-import { X, LayoutDashboard, BookOpen, Award, User, LogOut, Sun, Moon } from 'lucide-react';
+import { X, LayoutDashboard, BookOpen, Award, User, LogOut, Sun, Moon, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../App';
 import { logout } from '../../api/auth';
 
-const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab }) => {
+const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, setSelectedCourse, setSelectedLesson }) => {
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const sidebarItems = [
@@ -11,6 +11,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab }) =
     { id: 'courses', label: 'My Courses', icon: BookOpen },
     { id: 'certificates', label: 'Certificates', icon: Award },
     { id: 'profile', label: 'Profile', icon: User },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
   return (
@@ -38,6 +39,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab }) =
               onClick={() => {
                 setActiveTab(item.id);
                 setIsSidebarOpen(false);
+                setSelectedCourse && setSelectedCourse(null);
+                setSelectedLesson && setSelectedLesson(null);
               }}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === item.id ? 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
             >
