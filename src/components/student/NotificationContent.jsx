@@ -1,32 +1,42 @@
 import React, { useEffect, useState } from 'react';
-// import your notification API if available
-// import { getNotifications } from '../../api/notification';
+import { getNotifications } from '../../api/notification';
 
 const NotificationContent = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Example: fetch notifications from backend
-    // getNotifications().then(data => {
-    //   setNotifications(data);
-    //   setLoading(false);
-    // });
-    // For now, use mock data:
-    setTimeout(() => {
-      setNotifications([
-        { id: 1, message: 'Welcome to LevelUp!', date: '2025-09-06' },
-        { id: 2, message: 'Your course progress was updated.', date: '2025-09-05' },
-      ]);
-      setLoading(false);
-    }, 1000);
+    const fetchNotifications = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        // Example: get userId from localStorage
+        const user = JSON.parse(localStorage.getItem('user')); // Adjust key as needed
+        const userId = user?.id;
+        if (!userId) {
+          setError('User not logged in');
+          setNotifications([]);
+          return;
+        }
+        const data = await getNotifications(userId);
+        setNotifications(Array.isArray(data) ? data : (data?.items || []));
+      } catch (e) {
+        setError(e.message || 'Failed to load notifications');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNotifications();
   }, []);
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Notifications</h2>
+      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Notifications</h2>
       {loading ? (
         <p>Loading...</p>
+      ) : error ? (
+        <p className="text-red-500 dark:text-red-400">{error}</p>
       ) : notifications.length === 0 ? (
         <p>No notifications yet.</p>
       ) : (

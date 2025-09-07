@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useEffect, useRef, useState } from 'react';
 import { updateUserById } from '../../api/user';
 import { getMySubscriptions } from '../../api/subscriptions';
+import { applyForInstructor, getInstructorApplicationStatus } from '../../api/instructor'; // You need to create these APIs
 
 const ProfileContent = () => {
   const { user, refreshUser } = useAuth();
@@ -16,10 +17,34 @@ const ProfileContent = () => {
   const [subscriptions, setSubscriptions] = useState([]);
   const [subsLoading, setSubsLoading] = useState(false);
   const [subsError, setSubsError] = useState('');
+  const [showInstructorForm, setShowInstructorForm] = useState(false);
+  const [instructorForm, setInstructorForm] = useState({
+    bio: '',
+    expertise: '',
+    linkedin: '',
+    website: '',
+  });
+  const [applicationStatus, setApplicationStatus] = useState(null);
+  const [appLoading, setAppLoading] = useState(false);
+  const [appError, setAppError] = useState('');
+  const [applicationSubmitted, setApplicationSubmitted] = useState(false);
+
+  // Store initial values for cancel
+  const initialUser = useRef({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    profileImageUrl: user?.profileImageUrl || null,
+  });
 
   useEffect(() => {
     setFirstName(user?.firstName || '');
     setLastName(user?.lastName || '');
+    setPreviewImage(null);
+    initialUser.current = {
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      profileImageUrl: user?.profileImageUrl || null,
+    };
   }, [user]);
 
   useEffect(() => {
@@ -37,6 +62,17 @@ const ProfileContent = () => {
     };
     loadSubs();
   }, []);
+
+  useEffect(() => {
+    // Fetch application status if user is student
+    if (user?.role === 'student') {
+      setAppLoading(true);
+      getInstructorApplicationStatus(user.id)
+        .then(status => setApplicationStatus(status))
+        .catch(() => setApplicationStatus(null))
+        .finally(() => setAppLoading(false));
+    }
+  }, [user]);
 
   const handleImageUpload = () => {
     fileInputRef.current?.click();
@@ -74,6 +110,24 @@ const ProfileContent = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    setFirstName(initialUser.current.firstName);
+    setLastName(initialUser.current.lastName);
+    setPreviewImage(null); // revert to original profile image
+  };
+
+  const handleInstructorFormChange = (e) => {
+    const { name, value } = e.target;
+    setInstructorForm(f => ({ ...f, [name]: value }));
+  };
+
+  const handleInstructorSubmit = (e) => {
+    e.preventDefault();
+    setApplicationSubmitted(true);
+    setShowInstructorForm(false);
+    // No API call needed for now
   };
 
   return (
@@ -197,21 +251,100 @@ const ProfileContent = () => {
           )
         )}
       </div>
-      <div className="mt-8 flex justify-end space-x-4">
-        <button 
-          className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          disabled={saving}
-        >Cancel</button>
-        <button 
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          onClick={handleSave}
-          disabled={saving}
-        >{saving ? 'Saving...' : 'Save Changes'}</button>
-        {error && <p className="text-red-600 mt-4">{error}</p>}
-      </div>
+      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Become an Instructor</h3>
+      {appLoading ? (
+        <p>Loading application status...</p>
+      ) : applicationStatus === 'pending' ? (
+        <p className="text-yellow-600">Your application is pending review.</p>
+      ) : applicationStatus === 'approved' ? (
+        <p className="text-green-600">You are now an instructor!</p>
+      ) : showInstructorForm ? (
+        <form onSubmit={handleInstructorSubmit}>
+          <div>
+            <label className="block text-sm font-medium mb-1">Bio</label>
+            <textarea
+              name="bio"
+              value={instructorForm.bio}
+              onChange={handleInstructorFormChange}
+              required
+              className="w-full px-4 py-2 border rounded-lg"
+              rows={3}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Expertise (comma separated)</label>
+            <input
+              name="expertise"
+              value={instructorForm.expertise}
+              onChange={handleInstructorFormChange}
+              required
+              className="w-full px-4 py-2 border rounded-lg"
+              placeholder="e.g. React, Node.js, Data Science"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">LinkedIn</label>
+            <input
+              name="linkedin"
+              value={instructorForm.linkedin}
+              onChange={handleInstructorFormChange}
+              className="w-full px-4 py-2 border rounded-lg"
+              placeholder="LinkedIn profile URL"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Website</label>
+            <input
+              name="website"
+              value={instructorForm.website}
+              onChange={handleInstructorFormChange}
+              className="w-full px-4 py-2 border rounded-lg"
+              placeholder="Personal website URL"
+            />
+          </div>
+          <div className="flex space-x-4">
+            <button
+              type="button"
+              className="px-4 py-2 border rounded-lg"
+              onClick={() => setShowInstructorForm(false)}
+              disabled={appLoading}
+            >Cancel</button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+              disabled={appLoading}
+            >Submit Application</button>
+          </div>
+          {appError && <p className="text-red-600">{appError}</p>}
+        </form>
+      ) : applicationSubmitted ? (
+        <p className="text-yellow-600">Application submitted.</p>
+      ) : (
+        <button
+          className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          onClick={() => setShowInstructorForm(true)}
+        >Apply for Instructor</button>
+      )}
+    </div>
+    <div className="mt-8 flex justify-end space-x-4">
+      <button 
+        className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        disabled={saving}
+        onClick={handleCancel}
+      >Cancel</button>
+      <button 
+        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        onClick={handleSave}
+        disabled={saving}
+      >{saving ? 'Saving...' : 'Save Changes'}</button>
+      {error && <p className="text-red-600 mt-4">{error}</p>}
     </div>
   </div>
+  </div>
+
   );
 };
 
 export default ProfileContent;
+

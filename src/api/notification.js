@@ -1,9 +1,9 @@
 import api from './axios';
 
-// Fetch all notifications for the current user
-export async function getNotifications() {
+// Fetch all notifications for a specific user
+export async function getNotifications(userId) {
   try {
-    const response = await api.get('/notifications/me');
+    const response = await api.get(`/notifications/user/${userId}`);
     return response.data;
   } catch (err) {
     if (err.response?.data) {
@@ -33,6 +33,32 @@ export async function deleteNotification(notificationId) {
   } catch (err) {
     if (err.response?.data) {
       throw new Error(err.response.data.message || 'Failed to delete notification');
+    }
+    throw err;
+  }
+}
+
+// Create an email notification
+export async function createEmailNotification(data) {
+  try {
+    const response = await api.post('/notifications/email', data);
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Failed to create email notification');
+    }
+    throw err;
+  }
+}
+
+// Create an in-app notification
+export async function createInAppNotification(data) {
+  try {
+    const response = await api.post('/notifications/in-app', data);
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Failed to create in-app notification');
     }
     throw err;
   }
