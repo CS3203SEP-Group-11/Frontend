@@ -164,7 +164,7 @@ const CoursesContent = ({ setActiveTab, onEditCourse }) => {
                       <div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Rating</p>
                         <p className="font-semibold text-gray-900 dark:text-white">
-                          {course.rating?.average ? course.rating.average.toFixed(1) : 'N/A'}
+                          {course.ratingAverage ? course.ratingAverage.toFixed(1) : 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -177,7 +177,7 @@ const CoursesContent = ({ setActiveTab, onEditCourse }) => {
                       <span>{course.duration}h</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <span>{course.price?.amount || 0} {course.price?.currency || 'USD'}</span>
+                      <span>{course.priceAmount || 0} {course.priceCurrency || 'USD'}</span>
                     </div>
                     <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
                       {course.level}

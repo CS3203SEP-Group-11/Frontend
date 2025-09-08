@@ -383,7 +383,7 @@ const EditCourseContent = ({ courseId, onBack }) => {
                   type="number" 
                   step="0.01"
                   min="0"
-                  defaultValue={course.price?.amount || 0}
+                  defaultValue={course.priceAmount || 0}
                   required
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
                 />

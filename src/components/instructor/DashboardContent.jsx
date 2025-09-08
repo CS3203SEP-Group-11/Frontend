@@ -120,11 +120,11 @@ const DashboardContent = () => {
               <div className="flex items-center space-x-6">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 dark:text-gray-400">Rating</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">{course.rating.average || "N/A"}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{course.ratingAverage || "N/A"}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-gray-600 dark:text-gray-400">Revenue</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">${(course.enrollmentCount * course.price.amount).toLocaleString()}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{course.priceCurrency} {(course.enrollmentCount * course.priceAmount).toLocaleString()}</p>
                 </div>
                 <button 
                   className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"

@@ -212,7 +212,7 @@ const CourseDetailPage = () => {
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Rating</p>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {course.rating?.average ? `${course.rating.average} (${course.rating.count || 0})` : 'N/A'}
+                        {course.ratingAverage ? `${course.ratingAverage} (${course.ratingCount || 0})` : 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -328,13 +328,13 @@ const CourseDetailPage = () => {
                 {/* Price */}
                 <div className="text-center mb-6">
                   <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                    {course.price && course.price.amount ? (
-                      `${course.price.currency || 'USD'} ${course.price.amount}`
+                    {course.priceAmount ? (
+                      `${course.priceCurrency || 'USD'} ${course.priceAmount}`
                     ) : (
                       'Free'
                     )}
                   </div>
-                  {course.price && course.price.amount && (
+                  {course.priceAmount && (
                     <p className="text-sm text-gray-600 dark:text-gray-400">One-time payment</p>
                   )}
                 </div>
@@ -346,10 +346,10 @@ const CourseDetailPage = () => {
                     className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
                   >
                     <CreditCard className="w-5 h-5" />
-                    <span>{course.price && course.price.amount ? 'Buy Now' : 'Enroll Free'}</span>
+                    <span>{course.priceAmount ? 'Buy Now' : 'Enroll Free'}</span>
                   </button>
                   
-                  {course.price && course.price.amount && (
+                  {course.priceAmount && (
                     <button
                       onClick={handleAddToCart}
                       className="w-full border border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900 font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
