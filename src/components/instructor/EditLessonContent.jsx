@@ -4,6 +4,7 @@ import QuizBuilder from './QuizBuilder';
 import FileUploader from '../FileUploader';
 import { updateLesson } from '../../api/lesson';
 import VideoPlayer from '../VideoPlayer';
+import { createCompleteQuiz, getQuizDataById, deleteQuizById } from '../../api/quiz';
 
 const EditLessonContent = ({ lesson, onSave, onCancel }) => {
   const fileUploaderRef = useRef();
@@ -35,10 +36,20 @@ const EditLessonContent = ({ lesson, onSave, onCancel }) => {
         contentId: lesson.contentId ?? null,
         quizId: lesson.quizId ?? null,
       });
-      setQuizData(lesson.quizData || null);
+      fetchQuizData(lesson.quizId);
       setSelectedFile(null);
     }
   }, [lesson]);
+
+  const fetchQuizData = async (quizId) => {
+    try {
+      const data = await getQuizDataById(quizId);
+      setQuizData(data);
+    } catch (error) {
+      console.error('Failed to fetch quiz data:', error);
+      setQuizData(null);
+    }
+  };
 
   // Compute preview URL for VIDEO/PDF from selected file or existing contentUrl
   useEffect(() => {
@@ -84,6 +95,18 @@ const EditLessonContent = ({ lesson, onSave, onCancel }) => {
       }
       if (lesson?.id) payload.id = lesson.id;
       if (lesson?.courseId) payload.courseId = lesson.courseId;
+
+      if (formData.contentType === 'QUIZ' && quizData) {
+        quizData.lessonId = lesson.id;
+
+        // If editing existing lesson with a quiz, delete the old quiz first
+        if (lesson.quizId !== null) {
+          deleteQuizById(lesson.quizId);
+        }
+        
+        const createdQuiz = await createCompleteQuiz(quizData);
+        payload.quizId = createdQuiz.id || null;
+      }
 
       onSave && onSave(payload);
 
