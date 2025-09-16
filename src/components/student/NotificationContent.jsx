@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getNotifications } from '../../api/notification';
+import { useAuth } from '../../context/AuthContext';
 
 const NotificationContent = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -11,15 +13,12 @@ const NotificationContent = () => {
       setLoading(true);
       setError('');
       try {
-        // Example: get userId from localStorage
-        const user = JSON.parse(localStorage.getItem('user')); // Adjust key as needed
-        const userId = user?.id;
-        if (!userId) {
-          setError('User not logged in');
+        if (!user?.id) {
+          setError('User not found');
           setNotifications([]);
           return;
         }
-        const data = await getNotifications(userId);
+        const data = await getNotifications(user.id);
         setNotifications(Array.isArray(data) ? data : (data?.items || []));
       } catch (e) {
         setError(e.message || 'Failed to load notifications');
@@ -28,7 +27,7 @@ const NotificationContent = () => {
       }
     };
     fetchNotifications();
-  }, []);
+  }, [user]);
 
   return (
     <div className="p-6">
