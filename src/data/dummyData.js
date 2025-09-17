@@ -1347,3 +1347,51 @@ export const instructorUser = {
   totalStudents: 2847,
   totalEarnings: 12543.78
 };
+
+// ... existing code ...
+
+// Notification dummy data
+export const notifications = [
+  {
+    id: "1a2b3c4d-1111-2222-3333-444455556666",
+    userId: "1", // Reference to currentUser.id
+    type: "email",
+    content: "Your course starts tomorrow!",
+    status: "sent",
+    sentAt: "2025-09-18T10:00:00Z",
+    createdAt: "2025-09-17T09:00:00Z",
+    updatedAt: "2025-09-18T10:00:00Z"
+  },
+  {
+    id: "2b3c4d5e-2222-3333-4444-555566667777",
+    userId: "1",
+    type: "in_app",
+    content: "You have a new assignment due next week.",
+    status: "pending",
+    sentAt: null,
+    createdAt: "2025-09-17T12:00:00Z",
+    updatedAt: "2025-09-17T12:00:00Z"
+  }
+];
+
+export const emailNotifications = [
+  {
+    id: "1a2b3c4d-1111-2222-3333-444455556666",
+    subject: "Course Reminder",
+    body: "Don't forget your course starts tomorrow!",
+    recipientEmail: "alex.morgan@email.com",
+    deliveryResponse: "250 OK: Message accepted",
+    retryCount: 0
+  }
+];
+
+export const inAppNotifications = [
+  {
+    id: "2b3c4d5e-2222-3333-4444-555566667777",
+    title: "Assignment Due",
+    type: "alert",
+    body: "You have a new assignment due next week.",
+    read: false,
+    readAt: null
+  }
+];
