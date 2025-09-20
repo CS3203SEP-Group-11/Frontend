@@ -45,9 +45,11 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-primary-500/25 transition-shadow duration-300">
-              <span className="text-white font-bold text-lg">L</span>
-            </div>
+            <img 
+              src="/logo-levelup.svg" 
+              alt="LevelUp" 
+              className="w-10 h-10 transition-transform duration-300 group-hover:scale-110"
+            />
             <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
               LevelUp
             </span>
