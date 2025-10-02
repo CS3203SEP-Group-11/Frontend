@@ -22,6 +22,7 @@ import Footer from '../components/Footer';
 import { getCourseById } from '../api/course';
 import { getInstructorById } from '../api/user';
 import Breadcrumb from '../components/Breadcrumb'
+import { useCart } from '../context/CartContext';
 
 const CourseDetailPage = () => {
   const { id } = useParams();
@@ -30,6 +31,7 @@ const CourseDetailPage = () => {
   const [instructor, setInstructor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { addToCart } = useCart();
 
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
@@ -64,8 +66,22 @@ const CourseDetailPage = () => {
   };
 
   const handleAddToCart = () => {
-    // Handle add to cart
-    console.log('Adding to cart:', course.id);
+    if (!course) return;
+    const cartItem = {
+      id: course.id, // unique id for cart
+      courseId: course.id,
+      title: course.title,
+      instructor: instructor?.instructorName || 'Unknown Instructor',
+      price: { amount: Number(course.priceAmount || 0), currency: course.priceCurrency || 'USD' },
+      originalPrice: { amount: Number(course.originalPriceAmount || course.priceAmount || 0), currency: course.priceCurrency || 'USD' },
+      thumbnailUrl: course.thumbnailUrl || 'https://via.placeholder.com/400x225?text=Course',
+      duration: course.duration || 0,
+      rating: { average: course.ratingAverage || 0, count: course.ratingCount || 0 },
+      level: course.level || 'BEGINNER',
+      quantity: 1,
+    };
+    addToCart(cartItem);
+    navigate('/cart');
   };
 
   if (loading) {

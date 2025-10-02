@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Moon, Sun, User, LogOut, GraduationCap, Menu, X, ShoppingCart } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTheme } from '../App'
 import { useAuth } from '../context/AuthContext'
 import { logout } from '../api/auth';
+import { useCart } from '../context/CartContext'
 
 const Header = () => {
   const { isDarkMode, toggleTheme } = useTheme()
@@ -11,7 +12,8 @@ const Header = () => {
   const { isLoggedIn, user } = useAuth()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [cartItemsCount, setCartItemsCount] = useState(3) // This would come from cart context/state
+  const { items: cartItems } = useCart()
+  const cartItemsCount = cartItems.length
   const userMenuRef = useRef(null)
 
   // Close dropdown when clicking outside

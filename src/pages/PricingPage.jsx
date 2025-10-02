@@ -4,9 +4,14 @@ import { CheckCircle } from 'lucide-react';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
 import { pricingPlans } from '../data/dummyData';
+import StripeCheckout from '../components/StripeCheckout';
 
 const PricingPage = () => {
   const [isYearly, setIsYearly] = useState(false);
+  // For sandbox testing without backend fetching:
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [testClientSecret, setTestClientSecret] = useState(null);
+  const TEST_PUBLISHABLE_KEY = 'pk_test_51S3ctMFGozbXG9BSYpIPuklvUDXaoIKx6WINucV0M8wEfhMRV3rkSoRLs71reoMmeVFCxHJM2NrC1oNV2zgQgp6S00njcZSjhM'; // replace with your test pk
   const navigate = useNavigate();
 
   return (
@@ -73,7 +78,16 @@ const PricingPage = () => {
                   </ul>
 
                   <button
-                    onClick={() => navigate('/courses')}
+                    onClick={() => {
+                      if (plan.name === 'Free') {
+                        navigate('/courses');
+                      } else {
+                        // Set your test client_secret here to open the modal
+                        // Example: 'pi_12345_secret_67890'
+                        setTestClientSecret('pi_3SD63LFGozbXG9BS0beqALqI_secret_sZOOjv4ftbEFkIo3m6aW8tr4h');
+                        setShowCheckout(true);
+                      }
+                    }}
                     className={`mt-auto w-full py-3 rounded-lg font-semibold transition-colors ${
                       plan.popular
                         ? 'bg-primary-600 text-white hover:bg-primary-700'
@@ -90,6 +104,18 @@ const PricingPage = () => {
       </main>
 
       <Footer />
+
+      {showCheckout && (
+        <StripeCheckout
+          clientSecret={testClientSecret}
+          publishableKey={TEST_PUBLISHABLE_KEY}
+          onClose={() => setShowCheckout(false)}
+          onSuccess={() => {
+            setShowCheckout(false);
+            navigate('/courses');
+          }}
+        />
+      )}
     </div>
   );
 };
