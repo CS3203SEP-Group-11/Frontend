@@ -49,7 +49,7 @@ function PaymentForm({ onClose, onSuccess }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement options={{ layout: 'tabs' }} />
+      <PaymentElement options={{ layout: 'tabs', wallets: { link: 'never' } }} />
       {message && (
         <div className="text-sm text-red-600 dark:text-red-400">{message}</div>
       )}
@@ -73,8 +73,8 @@ function PaymentForm({ onClose, onSuccess }) {
   );
 }
 
-export default function StripeCheckout({ clientSecret, publishableKey, onClose, onSuccess }) {
-  const pk = publishableKey || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+export default function StripeCheckout({ clientSecret, onClose, onSuccess }) {
+  const pk = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   const stripePromise = useMemo(() => loadStripe(pk), [pk]);
   const options = useMemo(() => ({
     clientSecret,
