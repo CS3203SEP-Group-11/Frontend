@@ -1,14 +1,20 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { ShoppingCart, Trash2, ArrowLeft, CreditCard, Tag, Clock, User, Star } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { useCart } from '../context/CartContext'
 import { buyCourses } from '../api/payments'
+import StripeCheckout from '../components/StripeCheckout';
 
 const ShoppingCartPage = () => {
   const navigate = useNavigate()
-  const { items: cartItems, removeFromCart } = useCart()
+  const { items: cartItems, removeFromCart, clearCart } = useCart()
+
+  const [showCheckout, setShowCheckout] = useState(false)
+  const [clientSecret, setClientSecret] = useState(null)
+  const [checkingOut, setCheckingOut] = useState(false)
+  const [checkoutError, setCheckoutError] = useState(null)
 
   // No quantity for courses; one per course
 
@@ -27,9 +33,22 @@ const ShoppingCartPage = () => {
     return subtotal
   }
 
-  const handleCheckout = () => {
-    const courseIds = cartItems.map(item => item.id);
-    const paymentData = buyCourses(courseIds);
+  const handleCheckout = async () => {
+    if (!cartItems.length || checkingOut) return
+    setCheckoutError(null)
+    setCheckingOut(true)
+    try {
+      const courseIds = cartItems.map(item => item.id)
+      const res = await buyCourses(courseIds)
+      const secret = res?.clientSecret
+      if (!secret) throw new Error('No client secret returned')
+      setClientSecret(secret)
+      setShowCheckout(true)
+    } catch (e) {
+      setCheckoutError(e?.message || 'Failed to start checkout')
+    } finally {
+      setCheckingOut(false)
+    }
   }
 
   if (cartItems.length === 0) {
@@ -203,11 +222,18 @@ const ShoppingCartPage = () => {
 
               <button
                 onClick={handleCheckout}
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 mb-4"
+                disabled={checkingOut}
+                className={`w-full text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 mb-4 ${
+                  checkingOut ? 'bg-primary-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
+                }`}
               >
                 <CreditCard className="w-5 h-5" />
-                <span>Proceed to Checkout</span>
+                <span>{checkingOut ? 'Preparing payment…' : 'Proceed to Checkout'}</span>
               </button>
+
+              {checkoutError && (
+                <p className="text-sm text-red-600 dark:text-red-400 mb-2">{checkoutError}</p>
+              )}
 
               <div className="text-center">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -218,6 +244,22 @@ const ShoppingCartPage = () => {
           </div>
         </div>
       </div>
+
+      {showCheckout && clientSecret && (
+        <StripeCheckout
+          clientSecret={clientSecret}
+          onClose={() => {
+            setShowCheckout(false)
+            setClientSecret(null)
+          }}
+          onSuccess={() => {
+            setShowCheckout(false)
+            setClientSecret(null)
+            clearCart()
+            navigate('/courses')
+          }}
+        />
+      )}
 
       <Footer />
     </div>

@@ -11,7 +11,7 @@ const PricingPage = () => {
   const [isYearly, setIsYearly] = useState(false);
   // For sandbox testing without backend fetching:
   const [showCheckout, setShowCheckout] = useState(false);
-  const [testClientSecret, setTestClientSecret] = useState(null);
+  const [clientSecret, setClientSecret] = useState(null);
   const [planData, setPlanData] = useState(null);
   const [subscribing, setSubscribing] = useState(false);
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ const PricingPage = () => {
     try {
       setSubscribing(true);
       const { clientSecret } = await buySubscriptionPlan(planId);
-      setTestClientSecret(clientSecret);
+      setClientSecret(clientSecret);
       setShowCheckout(true);
     } catch (err) {
       console.error("Payment error:", err);
@@ -178,7 +178,7 @@ const PricingPage = () => {
 
       {showCheckout && (
         <StripeCheckout
-          clientSecret={testClientSecret}
+          clientSecret={clientSecret}
           onClose={() => { setShowCheckout(false); setSubscribing(false); }}
           onSuccess={() => {
             setShowCheckout(false);
