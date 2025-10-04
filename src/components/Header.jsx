@@ -55,7 +55,8 @@ const Header = () => {
             <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
               LevelUp
             </span>
-          </Link>          {/* Navigation */}
+          </Link>          
+          {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
             <Link 
               to="/" 
@@ -69,12 +70,14 @@ const Header = () => {
             >
               Courses
             </Link>
+            {!user?.isSubscribed && (
             <Link 
-              to="/pricing" 
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200 font-medium"
+            to="/pricing" 
+            className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200 font-medium"
             >
-              Pricing
+            Pricing
             </Link>
+            )}
           </nav>
 
           {/* Right side actions */}
