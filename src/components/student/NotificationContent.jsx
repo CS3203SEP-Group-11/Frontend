@@ -8,6 +8,18 @@ const NotificationContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Helper function to safely format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Recent';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Recent';
+      return date.toLocaleDateString();
+    } catch (error) {
+      return 'Recent';
+    }
+  };
+
   useEffect(() => {
     const fetchNotifications = async () => {
       setLoading(true);
@@ -122,7 +134,9 @@ const NotificationContent = () => {
                     {notification.content || notification.body}
                   </p>
                   <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span>{new Date(notification.createdAt).toLocaleDateString()}</span>
+                    <span>
+                      {formatDate(notification.createdAt || notification.readAt)}
+                    </span>
                     {notification.type && (
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         notification.type === 'info' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
@@ -135,7 +149,7 @@ const NotificationContent = () => {
                     )}
                     {notification.read && notification.readAt && (
                       <span className="text-green-600 dark:text-green-400">
-                        ✓ Read {new Date(notification.readAt).toLocaleDateString()}
+                        ✓ Read {formatDate(notification.readAt)}
                       </span>
                     )}
                   </div>
