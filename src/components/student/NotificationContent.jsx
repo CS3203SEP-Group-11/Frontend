@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getNotifications } from '../../api/notification';
+import { getNotifications, getInAppNotifications, markInAppNotificationRead } from '../../api/notification';
 import { useAuth } from '../../context/AuthContext';
 
 const NotificationContent = () => {
@@ -18,16 +18,45 @@ const NotificationContent = () => {
           setNotificationsList([]);
           return;
         }
-        const data = await getNotifications(user.id);
-        setNotificationsList(Array.isArray(data) ? data : (data?.items || []));
+        // Try to get in-app notifications first, fallback to general notifications
+        try {
+          const data = await getInAppNotifications(user.id);
+          setNotificationsList(Array.isArray(data) ? data : []);
+        } catch (e) {
+          // Fallback to general notifications if in-app fails
+          const data = await getNotifications(user.id);
+          setNotificationsList(Array.isArray(data) ? data : (data?.items || []));
+        }
       } catch (e) {
         setError(e.message || 'Failed to load notifications');
       } finally {
-      setLoading(false);
+        setLoading(false);
       }
     };
     fetchNotifications();
   }, [user?.id]);
+
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      await markInAppNotificationRead(notificationId);
+      // Update the local state to reflect the change
+      setNotificationsList(prev => 
+        prev.map(notification => 
+          notification.id === notificationId 
+            ? { ...notification, read: true, readAt: new Date().toISOString() }
+            : notification
+        )
+      );
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('notificationRead', { 
+        detail: { notificationId } 
+      }));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+      // You could add a toast notification here to show the error
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -68,12 +97,21 @@ const NotificationContent = () => {
       ) : (
         <div className="space-y-4">
           {notificationsList.map(notification => (
-            <div key={notification.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+            <div key={notification.id} className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow ${
+              notification.read ? 'opacity-75' : ''
+            }`}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    {notification.title || 'Notification'}
-                  </h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {notification.title || 'Notification'}
+                    </h3>
+                    {!notification.read && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        New
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-3">
                     {notification.content || notification.body}
                   </p>
@@ -89,11 +127,26 @@ const NotificationContent = () => {
                         {notification.type}
                       </span>
                     )}
+                    {notification.read && notification.readAt && (
+                      <span className="text-green-600 dark:text-green-400">
+                        ✓ Read {new Date(notification.readAt).toLocaleDateString()}
+                      </span>
+                    )}
                   </div>
                 </div>
-                {!notification.read && (
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                )}
+                <div className="flex flex-col items-end gap-2">
+                  {!notification.read && (
+                    <button
+                      onClick={() => handleMarkAsRead(notification.id)}
+                      className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 rounded-lg transition-colors"
+                    >
+                      Mark as Read
+                    </button>
+                  )}
+                  {!notification.read && (
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
