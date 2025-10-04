@@ -32,10 +32,12 @@ export const NotificationProvider = ({ children }) => {
     try {
       const data = await getInAppNotifications(user.id);
       const notificationList = Array.isArray(data) ? data : [];
-      setNotifications(notificationList);
+      // Reverse array to show newest notifications first (assuming backend returns in insertion order)
+      const reversedNotifications = [...notificationList].reverse();
+      setNotifications(reversedNotifications);
       
       // Count unread notifications
-      const unread = notificationList.filter(notification => !notification.read).length;
+      const unread = reversedNotifications.filter(notification => !notification.read).length;
       setUnreadCount(unread);
     } catch (e) {
       setError(e.message || 'Failed to load notifications');
@@ -59,6 +61,7 @@ export const NotificationProvider = ({ children }) => {
 
   // Add new notification
   const addNotification = (notification) => {
+    // Add new notification at the beginning to maintain newest first order
     setNotifications(prev => [notification, ...prev]);
     if (!notification.read) {
       setUnreadCount(prev => prev + 1);

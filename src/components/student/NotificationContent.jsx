@@ -21,11 +21,17 @@ const NotificationContent = () => {
         // Try to get in-app notifications first, fallback to general notifications
         try {
           const data = await getInAppNotifications(user.id);
-          setNotificationsList(Array.isArray(data) ? data : []);
+          const notificationsList = Array.isArray(data) ? data : [];
+          // Reverse array to show newest notifications first (assuming backend returns in insertion order)
+          const reversedNotifications = [...notificationsList].reverse();
+          setNotificationsList(reversedNotifications);
         } catch (e) {
           // Fallback to general notifications if in-app fails
           const data = await getNotifications(user.id);
-          setNotificationsList(Array.isArray(data) ? data : (data?.items || []));
+          const notificationsList = Array.isArray(data) ? data : (data?.items || []);
+          // Reverse array to show newest notifications first
+          const reversedNotifications = [...notificationsList].reverse();
+          setNotificationsList(reversedNotifications);
         }
       } catch (e) {
         setError(e.message || 'Failed to load notifications');
