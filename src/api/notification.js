@@ -13,7 +13,33 @@ export async function getNotifications(userId) {
   }
 }
 
-// Mark a notification as read
+// Fetch in-app notifications for a specific user
+export async function getInAppNotifications(userId) {
+  try {
+    const response = await api.get(`/notifications/in-app/user/${userId}`);
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Failed to fetch in-app notifications');
+    }
+    throw err;
+  }
+}
+
+// Mark an in-app notification as read
+export async function markInAppNotificationRead(notificationId) {
+  try {
+    const response = await api.put(`/notifications/in-app/${notificationId}/mark-read`);
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Failed to mark notification as read');
+    }
+    throw err;
+  }
+}
+
+// Mark a notification as read (legacy function for backward compatibility)
 export async function markNotificationRead(notificationId) {
   try {
     const response = await api.put(`/notifications/${notificationId}/read`);
