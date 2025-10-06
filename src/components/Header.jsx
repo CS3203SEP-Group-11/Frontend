@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Moon, Sun, User, LogOut, GraduationCap, Menu, X, ShoppingCart } from 'lucide-react'
+import { Moon, Sun, User, LogOut, GraduationCap, Menu, X, ShoppingCart, Bell } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTheme } from '../App'
 import { useAuth } from '../context/AuthContext'
@@ -13,7 +13,7 @@ const Header = () => {
   const { isLoggedIn, user } = useAuth()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
+  const [unreadCount, setUnreadCount] = useState(0)
   const { items: cartItems } = useCart()
   const cartItemsCount = cartItems.length
   const userMenuRef = useRef(null)
