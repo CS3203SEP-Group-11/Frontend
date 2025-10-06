@@ -1,101 +1,54 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { 
-  ShoppingCart, 
-  Plus, 
-  Minus, 
-  Trash2, 
-  ArrowLeft, 
-  CreditCard,
-  Tag,
-  Clock,
-  User,
-  Star
-} from 'lucide-react'
+import { ShoppingCart, Trash2, ArrowLeft, CreditCard, Tag, Clock, User, Star } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { useCart } from '../context/CartContext'
+import { buyCourses } from '../api/payments'
+import StripeCheckout from '../components/StripeCheckout';
 
 const ShoppingCartPage = () => {
   const navigate = useNavigate()
-  
-  // Mock cart data - in real app this would come from context/API
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      courseId: 'course-1',
-      title: 'Complete React Development Course',
-      instructor: 'John Smith',
-      price: { amount: 89.99, currency: 'USD' },
-      originalPrice: { amount: 199.99, currency: 'USD' },
-      thumbnailUrl: 'https://via.placeholder.com/400x225?text=React+Course',
-      duration: 24,
-      rating: { average: 4.8, count: 1250 },
-      level: 'INTERMEDIATE',
-      quantity: 1
-    },
-    {
-      id: 2,
-      courseId: 'course-2',
-      title: 'Advanced JavaScript Concepts',
-      instructor: 'Sarah Wilson',
-      price: { amount: 69.99, currency: 'USD' },
-      originalPrice: { amount: 149.99, currency: 'USD' },
-      thumbnailUrl: 'https://via.placeholder.com/400x225?text=JavaScript+Course',
-      duration: 18,
-      rating: { average: 4.9, count: 892 },
-      level: 'ADVANCED',
-      quantity: 1
-    },
-    {
-      id: 3,
-      courseId: 'course-3',
-      title: 'Python for Data Science',
-      instructor: 'Mike Johnson',
-      price: { amount: 79.99, currency: 'USD' },
-      originalPrice: { amount: 179.99, currency: 'USD' },
-      thumbnailUrl: 'https://via.placeholder.com/400x225?text=Python+Course',
-      duration: 32,
-      rating: { average: 4.7, count: 2103 },
-      level: 'BEGINNER',
-      quantity: 1
-    }
-  ])
+  const { items: cartItems, removeFromCart, clearCart } = useCart()
 
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity === 0) {
-      removeItem(id)
-      return
-    }
-    setCartItems(items => 
-      items.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    )
-  }
+  const [showCheckout, setShowCheckout] = useState(false)
+  const [clientSecret, setClientSecret] = useState(null)
+  const [checkingOut, setCheckingOut] = useState(false)
+  const [checkoutError, setCheckoutError] = useState(null)
 
-  const removeItem = (id) => {
-    setCartItems(items => items.filter(item => item.id !== id))
-  }
+  // No quantity for courses; one per course
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price.amount * item.quantity), 0)
+  return cartItems.reduce((total, item) => total + (item.price?.amount || 0), 0)
   }
 
   const calculateSavings = () => {
     return cartItems.reduce((total, item) => 
-      total + ((item.originalPrice.amount - item.price.amount) * item.quantity), 0
+  total + (((item.originalPrice?.amount || 0) - (item.price?.amount || 0))), 0
     )
   }
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal()
-    const tax = subtotal * 0.1 // 10% tax
-    return subtotal + tax
+    return subtotal
   }
 
-  const handleCheckout = () => {
-    // Navigate to checkout/payment page
-    navigate('/checkout', { state: { cartItems, total: calculateTotal() } })
+  const handleCheckout = async () => {
+    if (!cartItems.length || checkingOut) return
+    setCheckoutError(null)
+    setCheckingOut(true)
+    try {
+      const courseIds = cartItems.map(item => item.id)
+      const res = await buyCourses(courseIds)
+      const secret = res?.clientSecret
+      if (!secret) throw new Error('No client secret returned')
+      setClientSecret(secret)
+      setShowCheckout(true)
+    } catch (e) {
+      setCheckoutError(e?.message || 'Failed to start checkout')
+    } finally {
+      setCheckingOut(false)
+    }
   }
 
   if (cartItems.length === 0) {
@@ -205,7 +158,7 @@ const ShoppingCartPage = () => {
 
                           {/* Remove Button */}
                           <button
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => removeFromCart(item.id)}
                             className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                             aria-label="Remove item"
                           >
@@ -213,7 +166,7 @@ const ShoppingCartPage = () => {
                           </button>
                         </div>
 
-                        {/* Price and Quantity */}
+                        {/* Price */}
                         <div className="flex items-center justify-between mt-4">
                           <div className="flex items-center space-x-2">
                             <span className="text-xl font-bold text-gray-900 dark:text-white">
@@ -224,26 +177,6 @@ const ShoppingCartPage = () => {
                                 ${item.originalPrice.amount}
                               </span>
                             )}
-                          </div>
-
-                          {/* Quantity Controls */}
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="p-1 rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                              disabled={item.quantity <= 1}
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span className="w-8 text-center font-medium text-gray-900 dark:text-white">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="p-1 rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
                           </div>
                         </div>
                       </div>
@@ -268,12 +201,7 @@ const ShoppingCartPage = () => {
                     ${calculateSubtotal().toFixed(2)}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Tax</span>
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    ${(calculateSubtotal() * 0.1).toFixed(2)}
-                  </span>
-                </div>
+                {/* Tax removed */}
                 {calculateSavings() > 0 && (
                   <div className="flex justify-between text-green-600 dark:text-green-400">
                     <span>Savings</span>
@@ -294,11 +222,18 @@ const ShoppingCartPage = () => {
 
               <button
                 onClick={handleCheckout}
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 mb-4"
+                disabled={checkingOut}
+                className={`w-full text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 mb-4 ${
+                  checkingOut ? 'bg-primary-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
+                }`}
               >
                 <CreditCard className="w-5 h-5" />
-                <span>Proceed to Checkout</span>
+                <span>{checkingOut ? 'Preparing payment…' : 'Proceed to Checkout'}</span>
               </button>
+
+              {checkoutError && (
+                <p className="text-sm text-red-600 dark:text-red-400 mb-2">{checkoutError}</p>
+              )}
 
               <div className="text-center">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -309,6 +244,22 @@ const ShoppingCartPage = () => {
           </div>
         </div>
       </div>
+
+      {showCheckout && clientSecret && (
+        <StripeCheckout
+          clientSecret={clientSecret}
+          onClose={() => {
+            setShowCheckout(false)
+            setClientSecret(null)
+          }}
+          onSuccess={() => {
+            setShowCheckout(false)
+            setClientSecret(null)
+            clearCart()
+            navigate('/courses')
+          }}
+        />
+      )}
 
       <Footer />
     </div>

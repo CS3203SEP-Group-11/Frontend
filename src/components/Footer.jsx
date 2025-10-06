@@ -9,9 +9,11 @@ const Footer = () => {
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
             <Link to="/" className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">L</span>
-              </div>
+              <img 
+                src="/logo-levelup.svg" 
+                alt="LevelUp" 
+                className="w-8 h-8"
+              />
               <span className="text-xl font-bold">LevelUp</span>
             </Link>
             <p className="text-gray-400 mb-6 max-w-md">

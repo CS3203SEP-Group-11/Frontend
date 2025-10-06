@@ -92,9 +92,11 @@ const LoginPage = () => {
         {/* Logo */}
         <div className="flex justify-center">
           <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">L</span>
-            </div>
+            <img 
+              src="/logo-levelup.svg" 
+              alt="LevelUp" 
+              className="w-10 h-10"
+            />
             <span className="text-2xl font-bold text-gray-900 dark:text-white">LevelUp</span>
           </div>
         </div>
