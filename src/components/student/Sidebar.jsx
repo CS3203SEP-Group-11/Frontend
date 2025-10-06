@@ -2,16 +2,55 @@ import { X, LayoutDashboard, BookOpen, Award, User, LogOut, Sun, Moon, Bell } fr
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../App';
 import { logout } from '../../api/auth';
+import { useAuth } from '../../context/AuthContext';
+import { getInAppNotifications } from '../../api/notification';
+import { useState, useEffect } from 'react';
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, setSelectedCourse, setSelectedLesson }) => {
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch unread notification count
+  const fetchUnreadCount = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const notifications = await getInAppNotifications(user.id);
+      const unread = notifications.filter(notification => !notification.read).length;
+      setUnreadCount(unread);
+    } catch (error) {
+      console.error('Failed to fetch notification count:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+    
+    // Poll for updates every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
+  // Listen for notification read events
+  useEffect(() => {
+    const handleNotificationRead = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('notificationRead', handleNotificationRead);
+    return () => {
+      window.removeEventListener('notificationRead', handleNotificationRead);
+    };
+  }, [user?.id]);
+  
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'courses', label: 'My Courses', icon: BookOpen },
     { id: 'certificates', label: 'Certificates', icon: Award },
     { id: 'profile', label: 'Profile', icon: User },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'notifications', label: 'Notifications', icon: Bell, badge: unreadCount },
   ];
 
   return (
@@ -46,7 +85,14 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, set
               }}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === item.id ? 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
             >
-              <Icon className="w-5 h-5" />
+              <div className="relative">
+                <Icon className="w-5 h-5" />
+                {item.badge && item.badge > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
+              </div>
               <span className="font-medium">{item.label}</span>
             </button>
           );
