@@ -12,6 +12,7 @@
  * @property {UserRole} role
  * @property {Date=} dateOfBirth
  * @property {string=} languagePreference
+ * @property {boolean} isSubscribed
  */
 
 export {};

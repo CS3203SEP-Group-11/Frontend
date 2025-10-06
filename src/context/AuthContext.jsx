@@ -11,6 +11,7 @@ import { getMyProfile } from '../api/user';
  * @property {(user: User|null) => void} setUser
  * @property {boolean} isLoggedIn
  * @property {(isLoggedIn: boolean) => void} setIsLoggedIn
+ * @property {isSubscribed: boolean} isSubscribed
  * @property {() => Promise<void>} refreshUser
  */
 
