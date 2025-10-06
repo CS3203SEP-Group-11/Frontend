@@ -22,6 +22,9 @@ import Footer from '../components/Footer';
 import { getCourseById } from '../api/course';
 import { getInstructorById } from '../api/user';
 import Breadcrumb from '../components/Breadcrumb'
+import { useCart } from '../context/CartContext';
+import { buyCourses } from '../api/payments';
+import StripeCheckout from '../components/StripeCheckout';
 
 const CourseDetailPage = () => {
   const { id } = useParams();
@@ -30,6 +33,12 @@ const CourseDetailPage = () => {
   const [instructor, setInstructor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { addToCart } = useCart();
+
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(null);
 
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
@@ -57,15 +66,45 @@ const CourseDetailPage = () => {
     fetchCourseData();
   }, [id]);
 
-  const handleEnrollCourse = () => {
-    // Handle course enrollment/purchase
-    console.log('Enrolling in course:', course.id);
-    // Navigate to payment or enrollment flow
+  const handleBuyNow = async () => {
+    if (!course || checkingOut) return;
+    // If course is free, skip checkout flow (placeholder action)
+    if (!course.priceAmount) {
+      navigate('/courses');
+      return;
+    }
+    setCheckoutError(null);
+    setCheckingOut(true);
+    try {
+      const res = await buyCourses([course.id]);
+      const secret = res?.clientSecret;
+      if (!secret) throw new Error('No client secret returned');
+      setClientSecret(secret);
+      setShowCheckout(true);
+    } catch (e) {
+      setCheckoutError(e?.message || 'Failed to start checkout');
+    } finally {
+      setCheckingOut(false);
+    }
   };
 
   const handleAddToCart = () => {
-    // Handle add to cart
-    console.log('Adding to cart:', course.id);
+    if (!course) return;
+    const cartItem = {
+      id: course.id, // unique id for cart
+      courseId: course.id,
+      title: course.title,
+      instructor: instructor?.instructorName || 'Unknown Instructor',
+      price: { amount: Number(course.priceAmount || 0), currency: course.priceCurrency || 'USD' },
+      originalPrice: { amount: Number(course.originalPriceAmount || course.priceAmount || 0), currency: course.priceCurrency || 'USD' },
+      thumbnailUrl: course.thumbnailUrl,
+      duration: course.duration || 0,
+      rating: { average: course.ratingAverage || 0, count: course.ratingCount || 0 },
+      level: course.level || 'BEGINNER',
+      quantity: 1,
+    };
+    addToCart(cartItem);
+    navigate('/cart');
   };
 
   if (loading) {
@@ -342,12 +381,19 @@ const CourseDetailPage = () => {
                 {/* Action Buttons */}
                 <div className="space-y-3 mb-6">
                   <button
-                    onClick={handleEnrollCourse}
-                    className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                    onClick={handleBuyNow}
+                    disabled={checkingOut}
+                    className={`w-full text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                      checkingOut ? 'bg-primary-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
+                    }`}
                   >
                     <CreditCard className="w-5 h-5" />
-                    <span>{course.priceAmount ? 'Buy Now' : 'Enroll Free'}</span>
+                    <span>{checkingOut ? 'Preparing payment…' : (course.priceAmount ? 'Buy Now' : 'Enroll Free')}</span>
                   </button>
+
+                  {checkoutError && (
+                    <p className="text-sm text-red-600 dark:text-red-400">{checkoutError}</p>
+                  )}
                   
                   {course.priceAmount && (
                     <button
@@ -380,6 +426,21 @@ const CourseDetailPage = () => {
           </div>
         </div>
       </main>
+
+      {showCheckout && clientSecret && (
+        <StripeCheckout
+          clientSecret={clientSecret}
+          onClose={() => {
+            setShowCheckout(false);
+            setClientSecret(null);
+          }}
+          onSuccess={() => {
+            setShowCheckout(false);
+            setClientSecret(null);
+            navigate('/courses');
+          }}
+        />
+      )}
 
       <Footer />
     </div>

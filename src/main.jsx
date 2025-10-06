@@ -4,12 +4,15 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { CartProvider } from './context/CartContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-        <App />
+        <CartProvider>
+          <App />
+        </CartProvider>
       </GoogleOAuthProvider>
     </AuthProvider>
   </StrictMode>,
