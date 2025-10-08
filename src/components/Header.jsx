@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Moon, Sun, User, LogOut, GraduationCap, Menu, X, ShoppingCart, Bell } from 'lucide-react'
+import { Moon, Sun, User, LogOut, GraduationCap, Menu, X, ShoppingCart, Bell, Crown } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTheme } from '../App'
 import { useAuth } from '../context/AuthContext'
@@ -168,9 +168,14 @@ const Header = () => {
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="p-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 transition-all duration-200 hover:scale-105 shadow-sm"
+                    className="relative p-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 transition-all duration-200 hover:scale-105 shadow-sm"
                   >
                     <User className="w-5 h-5 text-white" />
+                    {user?.isSubscribed && (
+                      <div className="absolute -top-1 -right-1 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full p-1 shadow-lg">
+                        <Crown className="w-3 h-3 text-yellow-900" />
+                      </div>
+                    )}
                   </button>
 
                   {isUserMenuOpen && (
@@ -189,6 +194,12 @@ const Header = () => {
                         <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                           {user?.email || ''}
                         </p>
+                        {user?.isSubscribed && (
+                          <div className="mt-2 flex items-center space-x-1 px-2 py-1 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-full">
+                            <Crown className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />
+                            <span className="text-xs font-medium text-yellow-700 dark:text-yellow-300">Premium Member</span>
+                          </div>
+                        )}
                       </div>
                       
                       <button
