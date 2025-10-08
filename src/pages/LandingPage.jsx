@@ -4,32 +4,17 @@ import {
   BookOpen, 
   Users, 
   Award, 
-  Clock, 
-  Star,
-  ChevronLeft,
-  ChevronRight,
+  Clock
 } from 'lucide-react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import CourseCard from '../components/CourseCard'
-import Modal from '../components/Modal'
-import { testimonials } from '../data/dummyData'
 import { getAllCourses } from '../api/course'
 
 const LandingPage = () => {
   const navigate = useNavigate()
-  const [currentTestimonial, setCurrentTestimonial] = useState(0)
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [featuredCourses, setFeaturedCourses] = useState([])
-
-  const nextTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
-  }
-
-  const prevTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)
-  }
-
+  
   useEffect(() => {
       const fetchCourses = async () => {
         try {
@@ -52,7 +37,12 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Master New Skills
+              <span
+                className="inline-block animate-fade-in"
+                style={{ animationDuration: '1.2s' }}
+              >
+                Master New Skills 📖🎓📈
+              </span>
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
                 Transform Your Future
               </span>
@@ -161,77 +151,6 @@ const LandingPage = () => {
             >
               View All Courses
             </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              What Our Students Say
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Join thousands of successful learners who have transformed their careers
-            </p>
-          </div>
-
-          <div className="relative max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-gray-700 rounded-2xl p-8 shadow-lg">
-              <div className="flex items-center mb-6">
-                <img
-                  src={testimonials[currentTestimonial].image}
-                  alt={testimonials[currentTestimonial].name}
-                  className="w-16 h-16 rounded-full object-cover mr-4"
-                />
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {testimonials[currentTestimonial].name}
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {testimonials[currentTestimonial].role} at {testimonials[currentTestimonial].company}
-                  </p>
-                </div>
-                <div className="ml-auto flex">
-                  {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-              </div>
-              <p className="text-lg text-gray-700 dark:text-gray-300 italic">
-                "{testimonials[currentTestimonial].text}"
-              </p>
-            </div>
-
-            {/* Navigation buttons */}
-            <button
-              onClick={prevTestimonial}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 bg-white dark:bg-gray-700 p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow"
-            >
-              <ChevronLeft className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-            </button>
-            <button
-              onClick={nextTestimonial}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 bg-white dark:bg-gray-700 p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow"
-            >
-              <ChevronRight className="w-6 h-6 text-gray-600 dark:text-gray-300" />
-            </button>
-
-            {/* Dots indicator */}
-            <div className="flex justify-center mt-8 space-x-2">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentTestimonial(index)}
-                  className={`w-3 h-3 rounded-full transition-colors ${
-                    index === currentTestimonial
-                      ? 'bg-primary-600'
-                      : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
-                  }`}
-                />
-              ))}
-            </div>
           </div>
         </div>
       </section>
