@@ -3,18 +3,9 @@ name: Build and Deploy Frontend Student
 on:
   push:
     branches: [ deployment ]
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'package.json'
-      - 'vite.config.js'
-      - 'Dockerfile'
+
   pull_request:
     branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'package.json'
 
 env:
   GKE_CLUSTER: levelup-cluster
@@ -66,7 +57,7 @@ jobs:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
 
     - name: Deploy to GKE (if main branch)
-      if: github.ref == 'refs/heads/deplyment'
+      if: github.ref == 'refs/heads/deployment'
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE
         kubectl set image deployment/frontend-student \
