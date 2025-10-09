@@ -11,7 +11,7 @@ env:
   GKE_CLUSTER: levelup-cluster
   GKE_ZONE: asia-south1-a
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   IMAGE_NAME: levelup-frontend
 
 jobs:
