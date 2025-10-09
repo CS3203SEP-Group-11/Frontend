@@ -11,7 +11,6 @@ export async function getMyProfile() {
     throw err;
   }
 }
-
 export async function getUserById(userId) {
   try {
     const response = await api.get(`/users/${userId}`);
@@ -43,6 +42,30 @@ export async function getInstructorById(instructorId) {
   } catch (err) {
     if (err.response?.data) {
       throw new Error(err.response.data.message || 'Failed to fetch instructor');
+    }
+    throw err;
+  }
+}
+
+export async function getMyInstructorProfile() {
+  try {
+    const response = await api.get('/instructors/me');
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Failed to fetch instructor profile');
+    }
+    throw err;
+  }
+}
+
+export async function updateMyInstructorProfile(profileData) {
+  try {
+    const response = await api.put('/instructors/me', profileData);
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Failed to update instructor profile');
     }
     throw err;
   }

@@ -1,4 +1,4 @@
-import { X, LayoutDashboard, BookOpen, Plus, FileText, User, LogOut, Sun, Moon } from 'lucide-react';
+import { X, LayoutDashboard, BookOpen, Plus, User, LogOut, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../App';
 import { logout } from '../../api/auth';
@@ -10,7 +10,6 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab }) =
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'courses', label: 'My Courses', icon: BookOpen },
     { id: 'create', label: 'Create Course', icon: Plus },
-    { id: 'submissions', label: 'Submissions', icon: FileText },
     { id: 'profile', label: 'Profile', icon: User },
   ];
 
@@ -18,9 +17,11 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab }) =
     <div className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out will-change-transform`}>
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">L</span>
-          </div>
+          <img 
+            src="/logo-levelup.svg" 
+            alt="LevelUp" 
+            className="w-8 h-8"
+          />
           <span className="text-xl font-bold text-gray-900 dark:text-white">LevelUp</span>
         </div>
         <button

@@ -1,9 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Moon, Sun, User, LogOut, GraduationCap, Menu, X, ShoppingCart } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { Moon, Sun, User, LogOut, GraduationCap, Menu, X, ShoppingCart, Bell } from 'lucide-react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTheme } from '../App'
 import { useAuth } from '../context/AuthContext'
 import { logout } from '../api/auth';
+import { useCart } from '../context/CartContext'
+import { getInAppNotifications } from '../api/notification';
 
 const Header = () => {
   const { isDarkMode, toggleTheme } = useTheme()
@@ -11,7 +13,9 @@ const Header = () => {
   const { isLoggedIn, user } = useAuth()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [cartItemsCount, setCartItemsCount] = useState(3) // This would come from cart context/state
+  const [unreadCount, setUnreadCount] = useState(0)
+  const { items: cartItems } = useCart()
+  const cartItemsCount = cartItems.length
   const userMenuRef = useRef(null)
 
   // Close dropdown when clicking outside
@@ -27,6 +31,41 @@ const Header = () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
+
+  // Fetch unread notification count
+  const fetchUnreadCount = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const notifications = await getInAppNotifications(user.id);
+      const unread = notifications.filter(notification => !notification.read).length;
+      setUnreadCount(unread);
+    } catch (error) {
+      console.error('Failed to fetch notification count:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchUnreadCount();
+      
+      // Poll for updates every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isLoggedIn, user?.id])
+
+  // Listen for notification read events
+  useEffect(() => {
+    const handleNotificationRead = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('notificationRead', handleNotificationRead);
+    return () => {
+      window.removeEventListener('notificationRead', handleNotificationRead);
+    };
+  }, [user?.id])
 
   const handleLogout = async () => {
     try {
@@ -45,13 +84,16 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-primary-500/25 transition-shadow duration-300">
-              <span className="text-white font-bold text-lg">L</span>
-            </div>
+            <img 
+              src="/logo-levelup.svg" 
+              alt="LevelUp" 
+              className="w-10 h-10 transition-transform duration-300 group-hover:scale-110"
+            />
             <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
               LevelUp
             </span>
-          </Link>          {/* Navigation */}
+          </Link>          
+          {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
             <Link 
               to="/" 
@@ -65,12 +107,14 @@ const Header = () => {
             >
               Courses
             </Link>
+            {!user?.isSubscribed && (
             <Link 
-              to="/pricing" 
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200 font-medium"
+            to="/pricing" 
+            className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200 font-medium"
             >
-              Pricing
+            Pricing
             </Link>
+            )}
           </nav>
 
           {/* Right side actions */}
@@ -90,6 +134,20 @@ const Header = () => {
 
             {isLoggedIn ? (
               <div className="flex items-center space-x-2">
+                {/* Notifications */}
+                <button
+                  onClick={() => navigate('/student-dashboard?tab=notifications')}
+                  className="relative p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 shadow-sm"
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
                 {/* Cart Button */}
                 <div className="relative">
                   <button
