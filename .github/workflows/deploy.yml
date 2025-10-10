@@ -7,8 +7,8 @@ on:
     branches: [ main ]           # Run test build when PR created to main (no deploy)
 
 env:
-  GKE_CLUSTER: levelup-cluster
-  GKE_ZONE: asia-south1-a
+  GKE_CLUSTER: autopilot-cluster-1
+  GKE_ZONE: asia-south1
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   IMAGE_NAME: levelup-frontend
