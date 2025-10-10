@@ -2,7 +2,7 @@ name: Build and Deploy Frontend Student
 
 on:
   push:
-    branches: [ deployment ]     # Run build+deploy when pushing to 'deployment' branch
+    branches: [ vhbranch3 ]     # Run build+deploy when pushing to 'vhbranch3' branch
   pull_request:
     branches: [ main ]           # Run test build when PR created to main (no deploy)
 
@@ -68,9 +68,9 @@ jobs:
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-    #  Deploy to GKE (only if pushing to 'deployment' branch)
+    #  Deploy to GKE (only if pushing to 'vhbranch3' branch)
     - name: Deploy to GKE
-      if: github.ref == 'refs/heads/deployment'
+      if: github.ref == 'refs/heads/vhbranch3'
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
         kubectl set image deployment/frontend-student \
