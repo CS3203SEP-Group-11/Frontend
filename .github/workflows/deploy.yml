@@ -72,7 +72,6 @@ jobs:
     - name: Install GKE Auth Plugin
       run: |
         gcloud components install gke-gcloud-auth-plugin -q
-        gcloud config set auth/use_gke_gcloud_auth_plugin True
 
     # 1️1️ Deploy to GKE (only on vhbranch3 push)
     - name: Deploy to GKE
