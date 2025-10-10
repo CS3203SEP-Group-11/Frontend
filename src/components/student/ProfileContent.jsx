@@ -64,8 +64,8 @@ const ProfileContent = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch latest application if user is student
-    if (user?.role?.toUpperCase() === 'STUDENT') {
+    // Fetch latest application if user is not INSTRUCTOR or ADMIN
+    if (user?.role?.toUpperCase() === 'USER') {
       setAppLoading(true);
       getMyLatestInstructorApplication()
         .then(latest => setApplicationStatus(latest?.status || null))

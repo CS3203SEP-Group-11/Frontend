@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getMyProfile } from '../api/user';
+import { setCurrentUserId } from '../api/axios';
 
 /**
  * @typedef {import('../types/user').User} User
@@ -19,8 +20,6 @@ import { getMyProfile } from '../api/user';
 
 const AuthContext = createContext();
 
-let latestUserId = null;
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -30,11 +29,11 @@ export const AuthProvider = ({ children }) => {
       const user = await getMyProfile();
       setUser(user);
       setIsLoggedIn(true);
-      latestUserId = user?.id || null;
+      setCurrentUserId(user?.id || null);
     } catch (err) {
       setUser(null);
       setIsLoggedIn(false);
-      latestUserId = null;
+      setCurrentUserId(null);
     }
   };
 
@@ -52,8 +51,6 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export const getUserIdForApi = () => latestUserId;
 
 /**
  * @returns {AuthContextValue}
