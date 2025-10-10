@@ -2,10 +2,9 @@ name: Build and Deploy Frontend Student
 
 on:
   push:
-    branches: [ deployment ]
-
+    branches: [ deployment ]     # Run build+deploy when pushing to 'deployment' branch
   pull_request:
-    branches: [ main ]
+    branches: [ main ]           # Run test build when PR created to main (no deploy)
 
 env:
   GKE_CLUSTER: levelup-cluster
@@ -19,44 +18,58 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    # 1Checkout code
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # 2️ Setup Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
 
+    # 3️ Install dependencies
     - name: Install dependencies
       run: npm ci
 
+    # 4️ Build application
     - name: Build application
       run: npm run build
 
+    # 5️ Login to Docker Hub
     - name: Login to Docker Hub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+    # 6️ Build Docker image (two tags: unique + latest)
     - name: Build Docker image
       run: |
         docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:$GITHUB_SHA \
                      -t $DOCKERHUB_USERNAME/$IMAGE_NAME:latest .
 
+    # 7️ Push both images to Docker Hub
     - name: Push Docker image
       run: |
         docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:$GITHUB_SHA
         docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:latest
 
-    - name: Setup Google Cloud CLI
-      uses: google-github-actions/setup-gcloud@v1
+    # 8️ Authenticate to Google Cloud (new method)
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
       with:
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    # 9️ Setup Google Cloud CLI
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v2
+      with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-    - name: Deploy to GKE (if main branch)
+    #  Deploy to GKE (only if pushing to 'deployment' branch)
+    - name: Deploy to GKE
       if: github.ref == 'refs/heads/deployment'
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE

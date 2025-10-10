@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: frontend-student
-        image: yourusername/levelup-frontend:latest
+        image: surajahasarinda/levelup-frontend:latest
         ports:
         - containerPort: 80
         resources:
