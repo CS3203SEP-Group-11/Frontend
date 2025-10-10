@@ -16,7 +16,7 @@ export default function ApplyInstructorForm() {
         const data = await getMyLatestInstructorApplication();
         setLatest(data);
       } catch (e) {
-        // ignore
+        setLatest(null);
       }
     })();
   }, []);
@@ -48,14 +48,26 @@ export default function ApplyInstructorForm() {
     return <div className="p-4 bg-yellow-50 border rounded">Please log in to apply.</div>;
   }
 
+  // If there is already a submitted application, show its status and details
+  if (latest) {
+    return (
+      <div className="space-y-4">
+        <div className="p-3 border rounded bg-gray-50">
+          <div className="text-sm font-medium mb-1">Application Status: <span className="font-bold">{latest.status}</span></div>
+          <div className="text-xs text-gray-600 mb-1">Submitted at: {latest.createdAt ? new Date(latest.createdAt).toLocaleString() : '-'}</div>
+          <div className="text-xs text-gray-600 mb-1">Bio: {latest.bio}</div>
+          <div className="text-xs text-gray-600 mb-1">Expertise: {latest.expertise}</div>
+          <div className="text-xs text-gray-600 mb-1">Experience Years: {latest.experienceYears}</div>
+        </div>
+        {error && <div className="p-2 bg-red-50 text-red-700 border rounded">{error}</div>}
+        {success && <div className="p-2 bg-green-50 text-green-700 border rounded">{success}</div>}
+      </div>
+    );
+  }
+
+  // Otherwise, show the application form
   return (
     <div className="space-y-4">
-      {latest && (
-        <div className="p-3 border rounded bg-gray-50">
-          <div className="text-sm">Latest status: <span className="font-medium">{latest.status}</span></div>
-          <div className="text-xs text-gray-600">Submitted at: {latest.createdAt ? new Date(latest.createdAt).toLocaleString() : '-'}</div>
-        </div>
-      )}
       {error && <div className="p-2 bg-red-50 text-red-700 border rounded">{error}</div>}
       {success && <div className="p-2 bg-green-50 text-green-700 border rounded">{success}</div>}
       <form className="space-y-3" onSubmit={onSubmit}>

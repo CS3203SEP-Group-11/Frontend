@@ -1,7 +1,7 @@
 import api from './axios';
 
 export async function submitInstructorApplication(data) {
-  const res = await api.post('/instructor-applications', data);
+  const res = await api.post('/instructor-applications/', data);
   return res.data;
 }
 
