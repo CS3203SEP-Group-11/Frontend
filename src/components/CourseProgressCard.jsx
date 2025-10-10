@@ -8,18 +8,20 @@ const CourseProgressCard = ({
   className = "",
   viewMode = "grid" // "grid" or "list"
 }) => {
+  
+
   const {
-    title,
-    instructor,
-    rating,
-    students,
-    price,
-    duration,
-    level,
-    image,
-    description,
+    title = 'Untitled Course',
+    instructor = 'Unknown Instructor',
+    rating = 0,
+    students = 0,
+    price = 0,
+    duration = null,
+    level = 'Beginner',
+    image = '/api/placeholder/400/200',
+    description = 'No description available',
     progress = 0
-  } = course
+  } = course || {}
 
   const isListView = viewMode === "list" || className.includes("flex-row")
 
@@ -97,12 +99,12 @@ const CourseProgressCard = ({
               
               <div className="hidden md:flex items-center space-x-1">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
-                <span className="text-xs sm:text-sm text-gray-500">{students.toLocaleString()}</span>
+                <span className="text-xs sm:text-sm text-gray-500">{students ? students.toLocaleString() : '0'}</span>
               </div>
               
               <div className="hidden lg:flex items-center space-x-1">
                 <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
-                <span className="text-xs sm:text-sm text-gray-500">{duration}</span>
+                <span className="text-xs sm:text-sm text-gray-500">{duration || 'N/A'}</span>
               </div>
               
               <span className="hidden xl:inline px-2 py-1 bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 text-xs rounded-full">
@@ -144,13 +146,13 @@ const CourseProgressCard = ({
                   <div className="flex items-center space-x-3 sm:space-x-4">
                     <div className="flex items-center space-x-1">
                       <Clock className="w-4 h-4" />
-                      <span className="hidden sm:inline">{duration}</span>
-                      <span className="sm:hidden">{duration.split(' ')[0]}h</span>
+                      <span className="hidden sm:inline">{duration || 'N/A'}</span>
+                      <span className="sm:hidden">{duration && typeof duration === 'string' ? duration.split(' ')[0] + 'h' : 'N/A'}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Users className="w-4 h-4" />
-                      <span className="hidden sm:inline">{students.toLocaleString()}</span>
-                      <span className="sm:hidden">{Math.round(students/1000)}k</span>
+                      <span className="hidden sm:inline">{students ? students.toLocaleString() : '0'}</span>
+                      <span className="sm:hidden">{students ? Math.round(students/1000) + 'k' : '0'}</span>
                     </div>
                   </div>
                 </div>
