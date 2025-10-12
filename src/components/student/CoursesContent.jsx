@@ -1,5 +1,6 @@
 import { BookOpen } from 'lucide-react';
 import CourseProgressCard from '../CourseProgressCard';
+import ErrorBoundary from '../ErrorBoundary';
 import Pagination from '../Pagination';
 import SearchAndFilter from '../SearchAndFilter';
 import Breadcrumb from '../Breadcrumb';
@@ -47,6 +48,8 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
     const matchesCategory = !filters.category || course.category === filters.category;
     const matchesLevel = !filters.level || course.level === filters.level;
     
+    //
+    
     return matchesSearch && matchesCategory && matchesLevel;
   });
 
@@ -57,6 +60,11 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
 
   // Get unique categories from enrolled courses
   const categories = [...new Set(enrolledCourses.map(course => course.category).filter(Boolean))];
+
+  // Get unique levels from enrolled courses  
+  const levels = ['All Levels', ...new Set(enrolledCourses.map(course => course.level).filter(Boolean))];
+  
+  
 
   // Filter completed courses
   const completedCourses = enrolledCourses.filter(course => 
@@ -74,7 +82,6 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
   );
 
   const continueLearning = (course) => {
-    console.log('Continue learning:', course.title);
     onCourseSelect(course);
   };
 
@@ -85,7 +92,7 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Courses</h1>
         </div>
-        <SearchAndFilter onSearch={setSearchTerm} onFilter={setFilters} categories={categories} placeholder="Search your courses..." />
+          <SearchAndFilter onSearch={setSearchTerm} onFilter={setFilters} categories={categories} levels={levels} placeholder="Search your courses..." />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden animate-pulse">
@@ -109,7 +116,7 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Courses</h1>
         </div>
-        <SearchAndFilter onSearch={setSearchTerm} onFilter={setFilters} categories={categories} placeholder="Search your courses..." />
+          <SearchAndFilter onSearch={setSearchTerm} onFilter={setFilters} categories={categories} levels={levels} placeholder="Search your courses..." />
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
           <h3 className="text-lg font-medium text-red-800 dark:text-red-400 mb-2">Error Loading Courses</h3>
           <p className="text-red-600 dark:text-red-400">{error}</p>
@@ -131,7 +138,7 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Courses</h1>
       <button onClick={() => navigate('/')} className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">Browse More Courses</button>
     </div>
-    <SearchAndFilter onSearch={setSearchTerm} onFilter={setFilters} categories={categories} placeholder="Search your courses..." />
+      <SearchAndFilter onSearch={setSearchTerm} onFilter={setFilters} categories={categories} levels={levels} placeholder="Search your courses..." />
     <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
       <p>Showing {paginatedCourses.length} of {filteredCourses.length} courses</p>
       {filteredCourses.length !== enrolledCourses.length && (
@@ -141,7 +148,9 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
     {paginatedCourses.length > 0 ? (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedCourses.map((course) => (
-          <CourseProgressCard key={course.id} course={course} showProgress={true} onContinue={continueLearning} onCourseSelect={onCourseSelect} />
+          <ErrorBoundary key={`error-boundary-${course.id}`}>
+            <CourseProgressCard key={course.id} course={course} showProgress={true} onContinue={continueLearning} onCourseSelect={onCourseSelect} />
+          </ErrorBoundary>
         ))}
       </div>
     ) : (
@@ -162,7 +171,9 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">In Progress ({inProgressCourses.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {inProgressCourses.slice(0, 3).map((course) => (
-                <CourseProgressCard key={course.id} course={course} showProgress={true} onContinue={continueLearning} onCourseSelect={onCourseSelect} />
+                <ErrorBoundary key={`error-boundary-progress-${course.id}`}>
+                  <CourseProgressCard key={course.id} course={course} showProgress={true} onContinue={continueLearning} onCourseSelect={onCourseSelect} />
+                </ErrorBoundary>
               ))}
             </div>
           </div>
@@ -172,7 +183,9 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Completed ({completedCourses.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {completedCourses.slice(0, 3).map((course) => (
-                <CourseProgressCard key={course.id} course={course} showProgress={true} onCourseSelect={onCourseSelect} />
+                <ErrorBoundary key={`error-boundary-completed-${course.id}`}>
+                  <CourseProgressCard key={course.id} course={course} showProgress={true} onCourseSelect={onCourseSelect} />
+                </ErrorBoundary>
               ))}
             </div>
           </div>
@@ -182,7 +195,9 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Not Started ({notStartedCourses.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {notStartedCourses.slice(0, 3).map((course) => (
-                <CourseProgressCard key={course.id} course={course} showProgress={false} onCourseSelect={onCourseSelect} />
+                <ErrorBoundary key={`error-boundary-notstarted-${course.id}`}>
+                  <CourseProgressCard key={course.id} course={course} showProgress={false} onCourseSelect={onCourseSelect} />
+                </ErrorBoundary>
               ))}
             </div>
           </div>
