@@ -41,7 +41,7 @@ export async function getMyCertificates() {
 
 export async function requestForCertificate(enrollmentId) {
   try {
-    const response = await api.post(`/enrollments/certificates/${enrollmentId}/request`);
+    const response = await api.get(`/enrollments/certificate/${enrollmentId}/request`);
     return response.data;
   } catch (err) {
     if (err.response?.data) {

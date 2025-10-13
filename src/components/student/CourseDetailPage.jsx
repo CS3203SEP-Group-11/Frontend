@@ -2,9 +2,11 @@ import { ArrowLeft, Play, CheckCircle, Clock, FileText, Video, Text, FileQuestio
 import ProgressBar from '../ProgressBar';
 import { useEffect, useState } from 'react';
 import { getLessonsByCourseId } from '../../api/lesson';
+import { requestForCertificate } from '../../api/enrollment';
 
 const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
   const [lessons, setLessons] = useState([]); // Replace with API data
+  const [certificateRequested, setCertificateRequested] = useState(false);
   const completedLessons = lessons.filter(lesson => lesson.isCompleted).length;
   const progressPercentage = lessons.length > 0 ? (completedLessons / lessons.length) * 100 : 0;
 
@@ -26,6 +28,24 @@ const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
       isCompleted: completedIds.has(String(lesson.id)),
     }));
     setLessons(normalized);
+  }
+
+  const handleCertificateRequest = async () => {
+    try {
+      const enrollmentId = course?.id || course?.enrollmentId;
+      if (!enrollmentId) {
+        alert('Unable to request certificate: missing enrollment ID.');
+        return;
+      }
+      await requestForCertificate(enrollmentId);
+      setCertificateRequested(true);
+      alert('Certificate request submitted successfully.');
+    } catch (err) {
+      console.error('Failed to request certificate', err);
+      alert(
+        (err && err.message) || 'Failed to request certificate. Please try again later.'
+      );
+    }
   }
 
   const getLessonIcon = (type) => {
@@ -149,7 +169,21 @@ const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-3">
+        {String(course?.status).toUpperCase() === 'COMPLETED' && (
+          <button
+            onClick={handleCertificateRequest}
+            disabled={certificateRequested}
+            className={`px-6 py-3 rounded-lg transition-colors font-medium text-white ${
+              certificateRequested
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-emerald-600 hover:bg-emerald-700'
+            }`}
+            title={certificateRequested ? 'Certificate already requested' : 'Request Certificate'}
+          >
+            {certificateRequested ? 'Certificate Requested' : 'Request Certificate'}
+          </button>
+        )}
         <button
           onClick={onBack}
           className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"

@@ -12,6 +12,7 @@ const LessonContentPage = ({ lesson, course, onBack, enrollmentId }) => {
   const [quizAttempts, setQuizAttempts] = useState([]);
   const [attemptStarted, setAttemptStarted] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState(null);
+  const [isLocallyCompleted, setIsLocallyCompleted] = useState(!!lesson?.isCompleted);
   const { user } = useAuth()
 
   const handleQuizAnswer = (questionId, optionId) => {
@@ -34,6 +35,7 @@ const LessonContentPage = ({ lesson, course, onBack, enrollmentId }) => {
       setSelectedAnswers({});
       setQuizSubmitted(false);
       setQuizAttempts([]);
+      setIsLocallyCompleted(!!lesson?.isCompleted);
     }
   }, [lesson]);
 
@@ -78,6 +80,8 @@ const LessonContentPage = ({ lesson, course, onBack, enrollmentId }) => {
     await submitQuizAttempt(quizData.id, currentAttempt.id, submission.responses);
     setQuizSubmitted(true);
     setAttemptStarted(false);
+    // Refresh attempts and completion state after submission
+    await getQuizData();
   };
 
   const getQuizData = async () => {
@@ -92,6 +96,18 @@ const LessonContentPage = ({ lesson, course, onBack, enrollmentId }) => {
           setCurrentAttempt(userQuizAttempts[userQuizAttempts.length - 1]);
         } else {
           setCurrentAttempt(null);
+        }
+        // If any attempt has passed, mark this lesson as completed
+        const hasPassed = Array.isArray(userQuizAttempts) && userQuizAttempts.some(a => a.passed === true);
+        if (hasPassed) {
+          setIsLocallyCompleted(true);
+          if (enrollmentId && !lesson?.isCompleted) {
+            try {
+              await markLessonCompleted(enrollmentId, lesson.id);
+            } catch (err) {
+              console.error('Failed to auto-mark lesson complete after passing quiz', err);
+            }
+          }
         }
       } catch (e) {
         console.error('Failed to load quiz attempts', e);
@@ -347,7 +363,7 @@ const LessonContentPage = ({ lesson, course, onBack, enrollmentId }) => {
             </p>
           </div>
         </div>
-        {lesson.isCompleted && (
+        {(lesson.isCompleted || isLocallyCompleted) && (
           <div className="ml-auto">
             <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm">
               <CheckCircle className="w-4 h-4" />
