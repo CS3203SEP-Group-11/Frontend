@@ -1,12 +1,17 @@
-import { ArrowLeft, Play, CheckCircle, Clock, FileText, Video, Text, FileQuestionMark } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle, Clock, FileText, Video, Text, FileQuestionMark, Star } from 'lucide-react';
 import ProgressBar from '../ProgressBar';
 import { useEffect, useState } from 'react';
 import { getLessonsByCourseId } from '../../api/lesson';
 import { requestForCertificate } from '../../api/enrollment';
+import { rateCourse } from '../../api/course';
+import Modal from '../Modal';
 
 const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
   const [lessons, setLessons] = useState([]); // Replace with API data
   const [certificateRequested, setCertificateRequested] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [ratingLoading, setRatingLoading] = useState(false);
   const completedLessons = lessons.filter(lesson => lesson.isCompleted).length;
   const progressPercentage = lessons.length > 0 ? (completedLessons / lessons.length) * 100 : 0;
 
@@ -28,6 +33,25 @@ const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
     }));
     setLessons(normalized);
   }
+
+  const handleSubmitRating = async () => {
+    const courseId = course?.courseId || course?.id;
+    if (!courseId) {
+      alert('Unable to submit rating: missing course ID.');
+      return;
+    }
+    try {
+      setRatingLoading(true);
+      await rateCourse(courseId, rating);
+      setShowRatingModal(false);
+      alert('Thanks for rating this course!');
+    } catch (err) {
+      console.error('Failed to rate course', err);
+      alert((err && err.message) || 'Failed to submit rating. Please try again later.');
+    } finally {
+      setRatingLoading(false);
+    }
+  };
 
   const handleCertificateRequest = async () => {
     try {
@@ -170,18 +194,27 @@ const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
       {/* Action Buttons */}
       <div className="flex justify-end gap-3">
         {String(course?.status).toUpperCase() === 'COMPLETED' && (
-          <button
-            onClick={handleCertificateRequest}
-            disabled={certificateRequested}
-            className={`px-6 py-3 rounded-lg transition-colors font-medium text-white ${
-              certificateRequested
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-emerald-600 hover:bg-emerald-700'
-            }`}
-            title={certificateRequested ? 'Certificate already requested' : 'Request Certificate'}
-          >
-            {certificateRequested ? 'Certificate Requested' : 'Request Certificate'}
-          </button>
+          <>
+            <button
+              onClick={() => setShowRatingModal(true)}
+              className="px-6 py-3 rounded-lg transition-colors font-medium text-white bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+            >
+              <Star className="w-4 h-4" />
+              Rate Course
+            </button>
+            <button
+              onClick={handleCertificateRequest}
+              disabled={certificateRequested}
+              className={`px-6 py-3 rounded-lg transition-colors font-medium text-white ${
+                certificateRequested
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700'
+              }`}
+              title={certificateRequested ? 'Certificate already requested' : 'Request Certificate'}
+            >
+              {certificateRequested ? 'Certificate Requested' : 'Request Certificate'}
+            </button>
+          </>
         )}
         <button
           onClick={onBack}
@@ -190,6 +223,41 @@ const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
           Back to Courses
         </button>
       </div>
+
+      {/* Rating Modal */}
+      <Modal isOpen={showRatingModal} onClose={() => setShowRatingModal(false)} title="Rate this course">
+        <div className="space-y-4">
+          <p className="text-sm">How would you rate "{course?.title}"?</p>
+          <div className="flex items-center gap-2">
+            {[1,2,3,4,5].map((value) => (
+              <button
+                key={value}
+                aria-label={`Rate ${value}`}
+                onClick={() => setRating(value)}
+                className={`p-2 rounded-lg border ${rating >= value ? 'bg-yellow-100 border-yellow-300' : 'border-gray-300'} hover:bg-yellow-50`}
+              >
+                <Star className={`w-6 h-6 ${rating >= value ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-end gap-3 mt-2">
+            <button
+              onClick={() => setShowRatingModal(false)}
+              className="px-4 py-2 border rounded-lg"
+              disabled={ratingLoading}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmitRating}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
+              disabled={ratingLoading}
+            >
+              {ratingLoading ? 'Submitting...' : 'Submit Rating'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
