@@ -1,8 +1,8 @@
 import { BookOpen, Award, TrendingUp, User } from 'lucide-react';
 import CourseProgressCard from '../CourseProgressCard';
 import { useAuth } from '../../context/AuthContext';
-import { getAllCourses } from '../../api/course';
 import { useState, useEffect } from 'react';
+import { getUserEnrollmentsWithCourse } from '../../api/enrollment';
 
 const DashboardContent = ({ onCourseSelect, fallbackEnrolledCourses = [], fallbackCompletedCourses = [], fallbackInProgressCourses = [] }) => {
   const { user } = useAuth();
@@ -16,12 +16,11 @@ const DashboardContent = ({ onCourseSelect, fallbackEnrolledCourses = [], fallba
 
   const fetchEnrolledCourses = async () => {
     try {
-      setLoading(true);
-      const coursesData = await getAllCourses();
-      setEnrolledCourses(coursesData || fallbackEnrolledCourses || []);
+      const enrollmentData = await getUserEnrollmentsWithCourse(user.id);
+      setEnrolledCourses(enrollmentData);
+      setError('');
     } catch (err) {
       console.error('Error fetching enrolled courses:', err);
-      // Fall back to dummy data silently
       setEnrolledCourses(fallbackEnrolledCourses || []);
       setError('');
     } finally {
@@ -29,15 +28,18 @@ const DashboardContent = ({ onCourseSelect, fallbackEnrolledCourses = [], fallba
     }
   };
 
-  // Filter completed courses
+  // Filter completed courses (use status or progressPercentage)
   const completedCourses = (enrolledCourses && enrolledCourses.length > 0
     ? enrolledCourses
-    : fallbackEnrolledCourses).filter(course => course.progress === 100);
+    : fallbackEnrolledCourses).filter(course => course.status === 'COMPLETED' || course.progressPercentage === 100);
 
-  // Filter in-progress courses
+  // In-progress: include 0% up to 99%
   const inProgressCourses = (enrolledCourses && enrolledCourses.length > 0
     ? enrolledCourses
-    : fallbackEnrolledCourses).filter(course => course.progress > 0 && course.progress < 100);
+    : fallbackEnrolledCourses).filter(course => {
+      const pct = typeof course.progressPercentage === 'number' ? course.progressPercentage : 0;
+      return pct >= 0 && pct < 100;
+    });
 
   if (loading) {
     return (
@@ -160,7 +162,16 @@ const DashboardContent = ({ onCourseSelect, fallbackEnrolledCourses = [], fallba
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Continue Learning</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {inProgressCourses.slice(0, 2).map((course) => (
-              <CourseProgressCard key={course.id} course={course} showProgress={true} onCourseSelect={onCourseSelect} />
+              <CourseProgressCard
+                key={course.courseId}
+                course={{
+                  ...course,
+                  image: course.thumbnailUrl,
+                  progress: course.progressPercentage ?? 0,
+                }}
+                showProgress={true}
+                onCourseSelect={onCourseSelect}
+              />
             ))}
           </div>
         </div>

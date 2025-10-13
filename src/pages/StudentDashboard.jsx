@@ -50,12 +50,6 @@ const StudentDashboard = () => {
     setSelectedLesson(null);
   };
 
-  const handleLessonComplete = (lesson) => {
-    console.log('Lesson completed:', lesson.title);
-    // In a real app, this would update the lesson completion status
-    // and possibly navigate to the next lesson
-  };
-
   const renderContent = () => {
     // If a lesson is selected, show the lesson content page
     if (selectedLesson && selectedCourse) {
@@ -63,8 +57,8 @@ const StudentDashboard = () => {
         <LessonContentPage
           lesson={selectedLesson}
           course={selectedCourse}
+          enrollmentId={selectedCourse?.id}
           onBack={handleBackToCoursesDetail}
-          onComplete={handleLessonComplete}
         />
       );
     }
