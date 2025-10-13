@@ -4,9 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { getUserEnrollmentsWithCourse } from '../../api/enrollment';
 
-const DashboardContent = ({ onCourseSelect, fallbackEnrolledCourses = [], fallbackCompletedCourses = [], fallbackInProgressCourses = [] }) => {
+const DashboardContent = ({ onCourseSelect }) => {
   const { user } = useAuth();
-  const [enrolledCourses, setEnrolledCourses] = useState(fallbackEnrolledCourses);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -21,7 +21,7 @@ const DashboardContent = ({ onCourseSelect, fallbackEnrolledCourses = [], fallba
       setError('');
     } catch (err) {
       console.error('Error fetching enrolled courses:', err);
-      setEnrolledCourses(fallbackEnrolledCourses || []);
+      setEnrolledCourses([]);
       setError('');
     } finally {
       setLoading(false);
@@ -29,14 +29,10 @@ const DashboardContent = ({ onCourseSelect, fallbackEnrolledCourses = [], fallba
   };
 
   // Filter completed courses (use status or progressPercentage)
-  const completedCourses = (enrolledCourses && enrolledCourses.length > 0
-    ? enrolledCourses
-    : fallbackEnrolledCourses).filter(course => course.status === 'COMPLETED' || course.progressPercentage === 100);
+  const completedCourses = (enrolledCourses || []).filter(course => course.status === 'COMPLETED' || course.progressPercentage === 100);
 
   // In-progress: include 0% up to 99%
-  const inProgressCourses = (enrolledCourses && enrolledCourses.length > 0
-    ? enrolledCourses
-    : fallbackEnrolledCourses).filter(course => {
+  const inProgressCourses = (enrolledCourses || []).filter(course => {
       const pct = typeof course.progressPercentage === 'number' ? course.progressPercentage : 0;
       return pct >= 0 && pct < 100;
     });

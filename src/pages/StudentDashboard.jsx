@@ -11,7 +11,6 @@ import LessonContentPage from '../components/student/LessonContentPage';
 import NotificationContent from '../components/student/NotificationContent';
 import { useTheme } from '../App'
 import { useAuth } from '../context/AuthContext'
-import { currentUser, courses } from '../data/dummyData'
 
 const StudentDashboard = () => {
   const { isDarkMode, toggleTheme } = useTheme()
@@ -21,17 +20,6 @@ const StudentDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState(null)
   const [selectedLesson, setSelectedLesson] = useState(null)
-
-  // Fallback (dummy) data, used by components if API is unavailable
-  const enrolledCoursesFallback = courses.filter(course => 
-    currentUser.enrolledCourses.includes(course.id)
-  )
-  const completedCoursesFallback = enrolledCoursesFallback.filter(course => 
-    currentUser.completedCourses.includes(course.id)
-  )
-  const inProgressCoursesFallback = enrolledCoursesFallback.filter(course => 
-    !currentUser.completedCourses.includes(course.id) && course.progress > 0
-  )
 
   const handleCourseSelect = (course) => {
     setSelectedCourse(course);
@@ -79,16 +67,12 @@ const StudentDashboard = () => {
         return (
           <DashboardContent 
             onCourseSelect={handleCourseSelect}
-            fallbackEnrolledCourses={enrolledCoursesFallback}
-            fallbackCompletedCourses={completedCoursesFallback}
-            fallbackInProgressCourses={inProgressCoursesFallback}
           />
         );
       case 'courses':
         return (
           <CoursesContent 
             onCourseSelect={handleCourseSelect}
-            fallbackEnrolledCourses={enrolledCoursesFallback}
           />
         );
       case 'certificates':
@@ -101,9 +85,6 @@ const StudentDashboard = () => {
         return (
           <DashboardContent 
             onCourseSelect={handleCourseSelect}
-            fallbackEnrolledCourses={enrolledCoursesFallback}
-            fallbackCompletedCourses={completedCoursesFallback}
-            fallbackInProgressCourses={inProgressCoursesFallback}
           />
         );
     }

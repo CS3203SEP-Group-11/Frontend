@@ -6,10 +6,10 @@ import { useAuth } from '../../context/AuthContext';
 import { getUserEnrollmentsWithCourse } from '../../api/enrollment';
 import { useNavigate } from 'react-router-dom';
 
-const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
+const CoursesContent = ({ onCourseSelect }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [enrolledCourses, setEnrolledCourses] = useState(fallbackEnrolledCourses);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   // Removed search/filter/pagination for simplified view
@@ -25,7 +25,7 @@ const CoursesContent = ({ onCourseSelect, fallbackEnrolledCourses = [] }) => {
       setError('');
     } catch (err) {
       console.error('Error fetching enrolled courses:', err);
-      setEnrolledCourses(fallbackEnrolledCourses || []);
+      setEnrolledCourses([]);
       setError('');
     } finally {
       setLoading(false);

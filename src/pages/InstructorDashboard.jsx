@@ -8,7 +8,6 @@ import CreateCourseContent from '../components/instructor/CreateCourseContent';
 import EditCourseContent from '../components/instructor/EditCourseContent';
 import ProfileContent from '../components/instructor/ProfileContent';
 import { useTheme } from '../App';
-import { instructorUser, courses } from '../data/dummyData';
 
 const InstructorDashboard = () => {
   const { isDarkMode, toggleTheme } = useTheme()
@@ -16,11 +15,6 @@ const InstructorDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [editingCourseId, setEditingCourseId] = useState(null)
-
-  // Filter instructor's courses
-  const instructorCourses = courses.filter(course => 
-    instructorUser.createdCourses?.includes(course.id)
-  )
 
   const handleEditCourse = (courseId) => {
     setEditingCourseId(courseId);

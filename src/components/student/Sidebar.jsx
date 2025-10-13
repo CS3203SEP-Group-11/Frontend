@@ -50,7 +50,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, set
     { id: 'courses', label: 'My Courses', icon: BookOpen },
     { id: 'certificates', label: 'Certificates', icon: Award },
     { id: 'profile', label: 'Profile', icon: User },
-    { id: 'notifications', label: 'Notifications', icon: Bell, badge: unreadCount },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
   return (
@@ -90,11 +90,6 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, set
             >
               <div className="relative">
                 <Icon className="w-5 h-5" />
-                {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                    {item.badge > 99 ? '99+' : item.badge}
-                  </span>
-                )}
               </div>
               <span className="font-medium">{item.label}</span>
             </button>
