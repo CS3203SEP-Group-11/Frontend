@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getMyProfile } from '../api/user';
-import { setCurrentUserId } from '../api/axios';
 
 /**
  * @typedef {import('../types/user').User} User
@@ -30,11 +29,9 @@ export const AuthProvider = ({ children }) => {
       const user = await getMyProfile();
       setUser(user);
       setIsLoggedIn(true);
-      setCurrentUserId(user?.id || null);
     } catch (err) {
       setUser(null);
       setIsLoggedIn(false);
-      setCurrentUserId(null);
     } finally {
       setLoading(false);
     }

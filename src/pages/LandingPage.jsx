@@ -19,7 +19,6 @@ const LandingPage = () => {
       const fetchCourses = async () => {
         try {
           const data = await getAllCourses();
-          console.log('Fetched courses:', data)
           setFeaturedCourses(data);
         } catch (err) {
           console.error('Failed to fetch courses:', err.message);

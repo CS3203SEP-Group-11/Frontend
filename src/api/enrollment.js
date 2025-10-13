@@ -52,7 +52,6 @@ export async function requestForCertificate(enrollmentId) {
 }
 
 export async function markLessonCompleted(enrollmentId, lessonId) {
-  console.log('Marking lesson complete:', { enrollmentId, lessonId });
   try {
     const response = await api.post(`/enrollments/${enrollmentId}/lesson/${lessonId}/complete`);
     return response.data;

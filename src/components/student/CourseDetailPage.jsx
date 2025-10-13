@@ -21,7 +21,6 @@ const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
       return;
     }
     const lessonsData = await getLessonsByCourseId(courseKey);
-    console.log('Fetched lessons:', lessonsData);
     const completedIds = new Set((course?.completedLessons || []).map(String));
     const normalized = (lessonsData || []).map((lesson) => ({
       ...lesson,
