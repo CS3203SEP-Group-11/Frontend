@@ -10,8 +10,6 @@ import ProfileContent from '../components/instructor/ProfileContent';
 import { useTheme } from '../App';
 
 const InstructorDashboard = () => {
-  const { isDarkMode, toggleTheme } = useTheme()
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [editingCourseId, setEditingCourseId] = useState(null)

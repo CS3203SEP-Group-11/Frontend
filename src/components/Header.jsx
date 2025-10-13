@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Moon, Sun, User, LogOut, GraduationCap, Menu, X, ShoppingCart, Bell, Crown } from 'lucide-react'
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '../App'
 import { useAuth } from '../context/AuthContext'
 import { logout } from '../api/auth';

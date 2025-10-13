@@ -1,4 +1,4 @@
-import { Star, Clock, Users, Play } from 'lucide-react'
+import { Clock, Play } from 'lucide-react'
 
 const CourseProgressCard = ({ 
   course, 
