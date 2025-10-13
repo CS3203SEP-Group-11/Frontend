@@ -1,9 +1,10 @@
-import { X, LayoutDashboard, BookOpen, Award, User, LogOut, Sun, Moon, Bell } from 'lucide-react';
+import { X, LayoutDashboard, BookOpen, Award, User, LogOut, Sun, Moon, Bell, GraduationCap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../App';
 import { logout } from '../../api/auth';
 import { useAuth } from '../../context/AuthContext';
 import { getInAppNotifications } from '../../api/notification';
+import { getMyLatestInstructorApplication } from '../../api/instructorApplication';
 import { useState, useEffect } from 'react';
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, setSelectedCourse, setSelectedLesson }) => {

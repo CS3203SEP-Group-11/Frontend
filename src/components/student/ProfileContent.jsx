@@ -5,10 +5,12 @@ import { useEffect, useRef, useState } from 'react';
 import { updateUserById } from '../../api/user';
 import { getMySubscriptions } from '../../api/subscriptions';
 import { submitInstructorApplication, getMyLatestInstructorApplication } from '../../api/instructorApplication';
+import { useNavigate } from 'react-router-dom';
 import Modal from '../Modal';
 
 const ProfileContent = () => {
   const { user, refreshUser } = useAuth();
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [firstName, setFirstName] = useState('');
@@ -64,15 +66,24 @@ const ProfileContent = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch latest application if user is not INSTRUCTOR or ADMIN
-    if (user?.role?.toUpperCase() === 'USER') {
+    // Fetch latest application for all users (not just USER role)
+    // because approved students might have their role changed
+    const fetchApplicationStatus = async () => {
       setAppLoading(true);
-      getMyLatestInstructorApplication()
-        .then(latest => setApplicationStatus(latest?.status || null))
-        .catch(() => setApplicationStatus(null))
-        .finally(() => setAppLoading(false));
+      try {
+        const latest = await getMyLatestInstructorApplication();
+        setApplicationStatus(latest?.status || null);
+      } catch (error) {
+        setApplicationStatus(null);
+      } finally {
+        setAppLoading(false);
+      }
+    };
+
+    if (user?.id) {
+      fetchApplicationStatus();
     }
-  }, [user]);
+  }, [user?.id]);
 
   const handleImageUpload = () => {
     fileInputRef.current?.click();
@@ -270,17 +281,92 @@ const ProfileContent = () => {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Become an Instructor</h3>
           {appLoading ? (
             <p>Loading application status...</p>
-          ) : applicationStatus === 'PENDING' ? (
-            <p className="text-yellow-600">Your application is pending review.</p>
-          ) : applicationStatus === 'APPROVED' ? (
-            <p className="text-green-600">You are now an instructor!</p>
-          ) : applicationSubmitted ? (
-            <p className="text-yellow-600">Application submitted.</p>
           ) : (
-            <button
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              onClick={() => setShowInstructorForm(true)}
-            >Apply for Instructor</button>
+            <>
+              {applicationStatus === 'PENDING' ? (
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                    Application Pending Review
+                  </p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                    Your instructor application is being reviewed by our team. We'll notify you once a decision is made.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : applicationStatus === 'APPROVED' ? (
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                    🎉 Congratulations! You are now an Instructor!
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    Your application has been approved. You can now create and manage courses on our platform.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : applicationStatus === 'REJECTED' ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                      Application Not Approved
+                    </p>
+                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                      Your instructor application was not approved at this time. You can submit a new application if you'd like.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Don't give up! You can improve your qualifications and apply again.
+                </p>
+                <button
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  onClick={() => setShowInstructorForm(true)}
+                >Apply Again</button>
+              </div>
+            </div>
+          ) : applicationSubmitted ? (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Application submitted successfully!</p>
+              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">We'll review your application and get back to you soon.</p>
+            </div>
+          ) : null}
+          
+          {!applicationStatus && !applicationSubmitted && !appLoading && (
+            <div className="space-y-4">
+              <p className="text-gray-600 dark:text-gray-400">
+                Share your knowledge and expertise by becoming an instructor. Create courses and help others learn new skills.
+              </p>
+              <button
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                onClick={() => setShowInstructorForm(true)}
+              >Apply for Instructor</button>
+            </div>
+          )}
+            </>
           )}
         </div>
         <Modal isOpen={showInstructorForm} onClose={() => setShowInstructorForm(false)} title="Instructor Application">
