@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Save, X, Video, FileText, Text, FileQuestionMark } from 'lucide-react';
 import QuizBuilder from './QuizBuilder';
 import FileUploader from '../FileUploader';
-import { updateLesson } from '../../api/lesson';
 import VideoPlayer from '../VideoPlayer';
 import { createCompleteQuiz, getQuizDataById, deleteQuizById } from '../../api/quiz';
 

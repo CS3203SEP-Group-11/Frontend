@@ -1,20 +1,65 @@
-import { ArrowLeft, Play, CheckCircle, Clock, FileText, Video } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle, Clock, FileText, Video, Text, FileQuestionMark } from 'lucide-react';
 import ProgressBar from '../ProgressBar';
-import { courseLessons } from '../../data/dummyData';
+import { useEffect, useState } from 'react';
+import { getLessonsByCourseId } from '../../api/lesson';
+import { requestForCertificate } from '../../api/enrollment';
 
 const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
-  const lessons = courseLessons[course.id] || [];
+  const [lessons, setLessons] = useState([]); // Replace with API data
+  const [certificateRequested, setCertificateRequested] = useState(false);
   const completedLessons = lessons.filter(lesson => lesson.isCompleted).length;
   const progressPercentage = lessons.length > 0 ? (completedLessons / lessons.length) * 100 : 0;
 
+  useEffect(() => {
+    fetchLessons();
+  }, [course]);
+
+  const fetchLessons = async () => {
+    const courseKey = course?.courseId || course?.id;
+    if (!courseKey) {
+      setLessons([]);
+      return;
+    }
+    const lessonsData = await getLessonsByCourseId(courseKey);
+    const completedIds = new Set((course?.completedLessons || []).map(String));
+    const normalized = (lessonsData || []).map((lesson) => ({
+      ...lesson,
+      isCompleted: completedIds.has(String(lesson.id)),
+    }));
+    setLessons(normalized);
+  }
+
+  const handleCertificateRequest = async () => {
+    try {
+      const enrollmentId = course?.id || course?.enrollmentId;
+      if (!enrollmentId) {
+        alert('Unable to request certificate: missing enrollment ID.');
+        return;
+      }
+      await requestForCertificate(enrollmentId);
+      setCertificateRequested(true);
+      alert('Certificate request submitted successfully.');
+    } catch (err) {
+      console.error('Failed to request certificate', err);
+      alert(
+        (err && err.message) || 'Failed to request certificate. Please try again later.'
+      );
+    }
+  }
+
   const getLessonIcon = (type) => {
-    switch (type) {
-      case 'video':
-        return <Video className="w-4 h-4" />;
-      case 'assignment':
-        return <FileText className="w-4 h-4" />;
+    const t = String(type || '').toUpperCase();
+    switch (t) {
+      case 'VIDEO':
+        return <Video className="w-4 h-4 text-blue-500" />;
+      case 'TEXT':
+        return <Text className="w-4 h-4 text-green-500" />;
+      case 'PDF':
+        return <FileText className="w-4 h-4 text-purple-500" />;
+      case 'QUIZ':
+        return <FileQuestionMark className="w-4 h-4 text-yellow-500" />;
       default:
-        return <Play className="w-4 h-4" />;
+        return <FileText className="w-4 h-4" />;
     }
   };
 
@@ -40,7 +85,6 @@ const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
         />
         <div className="p-6">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{course.title}</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">by {course.instructor}</p>
           <p className="text-gray-700 dark:text-gray-300 mb-6">{course.description}</p>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -97,7 +141,7 @@ const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
                       <CheckCircle className="w-6 h-6 text-green-500" />
                     ) : (
                       <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 rounded-full flex items-center justify-center">
-                        {getLessonIcon(lesson.type)}
+                        {getLessonIcon(lesson.contentType || lesson.type)}
                       </div>
                     )}
                   </div>
@@ -113,7 +157,7 @@ const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
                     <span>{lesson.duration}</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    {getLessonIcon(lesson.type)}
+                    {getLessonIcon(lesson.contentType || lesson.type)}
                     <span className="capitalize">{lesson.type}</span>
                   </div>
                 </div>
@@ -124,7 +168,21 @@ const CourseDetailPage = ({ course, onBack, onLessonSelect }) => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-3">
+        {String(course?.status).toUpperCase() === 'COMPLETED' && (
+          <button
+            onClick={handleCertificateRequest}
+            disabled={certificateRequested}
+            className={`px-6 py-3 rounded-lg transition-colors font-medium text-white ${
+              certificateRequested
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-emerald-600 hover:bg-emerald-700'
+            }`}
+            title={certificateRequested ? 'Certificate already requested' : 'Request Certificate'}
+          >
+            {certificateRequested ? 'Certificate Requested' : 'Request Certificate'}
+          </button>
+        )}
         <button
           onClick={onBack}
           className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"

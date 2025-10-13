@@ -10,68 +10,16 @@ import CourseDetailPage from '../components/student/CourseDetailPage';
 import LessonContentPage from '../components/student/LessonContentPage';
 import NotificationContent from '../components/student/NotificationContent';
 import { useTheme } from '../App'
-import { 
-  currentUser, 
-  courses
-} from '../data/dummyData'
+import { useAuth } from '../context/AuthContext'
 
 const StudentDashboard = () => {
   const { isDarkMode, toggleTheme } = useTheme()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState({ category: null, level: null })
-  const [currentPage, setCurrentPage] = useState(1)
   const [selectedCourse, setSelectedCourse] = useState(null)
   const [selectedLesson, setSelectedLesson] = useState(null)
-  const coursesPerPage = 6
-
-  // Filter user's enrolled courses
-  const enrolledCourses = courses.filter(course => 
-    currentUser.enrolledCourses.includes(course.id)
-  )
-
-  // Apply search and filters
-  const filteredCourses = enrolledCourses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          course.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          course.category.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesCategory = !filters.category || course.category === filters.category
-    const matchesLevel = !filters.level || course.level === filters.level
-    
-    return matchesSearch && matchesCategory && matchesLevel
-  })
-
-  // Pagination
-  const totalPages = Math.ceil(filteredCourses.length / coursesPerPage)
-  const startIndex = (currentPage - 1) * coursesPerPage
-  const paginatedCourses = filteredCourses.slice(startIndex, startIndex + coursesPerPage)
-
-  // Get unique categories from enrolled courses
-  const categories = [...new Set(enrolledCourses.map(course => course.category))]
-
-  // Filter completed courses
-  const completedCourses = enrolledCourses.filter(course => 
-    currentUser.completedCourses.includes(course.id)
-  )
-
-  // Filter in-progress courses
-  const inProgressCourses = enrolledCourses.filter(course => 
-    !currentUser.completedCourses.includes(course.id) && course.progress > 0
-  )
-
-  // Filter not started courses
-  const notStartedCourses = enrolledCourses.filter(course => 
-    !currentUser.completedCourses.includes(course.id) && course.progress === 0
-  )
-
-  const continueLearning = (course) => {
-    console.log('Continue learning:', course.title);
-    setSelectedCourse(course);
-    // This would typically navigate to the course player
-  };
 
   const handleCourseSelect = (course) => {
     setSelectedCourse(course);
@@ -90,12 +38,6 @@ const StudentDashboard = () => {
     setSelectedLesson(null);
   };
 
-  const handleLessonComplete = (lesson) => {
-    console.log('Lesson completed:', lesson.title);
-    // In a real app, this would update the lesson completion status
-    // and possibly navigate to the next lesson
-  };
-
   const renderContent = () => {
     // If a lesson is selected, show the lesson content page
     if (selectedLesson && selectedCourse) {
@@ -103,8 +45,8 @@ const StudentDashboard = () => {
         <LessonContentPage
           lesson={selectedLesson}
           course={selectedCourse}
+          enrollmentId={selectedCourse?.id}
           onBack={handleBackToCoursesDetail}
-          onComplete={handleLessonComplete}
         />
       );
     }
@@ -123,32 +65,13 @@ const StudentDashboard = () => {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <DashboardContent
-            inProgressCourses={inProgressCourses}
-            completedCourses={completedCourses}
-            enrolledCourses={enrolledCourses}
+          <DashboardContent 
             onCourseSelect={handleCourseSelect}
           />
         );
       case 'courses':
         return (
-          <CoursesContent
-            paginatedCourses={paginatedCourses}
-            filteredCourses={filteredCourses}
-            enrolledCourses={enrolledCourses}
-            inProgressCourses={inProgressCourses}
-            completedCourses={completedCourses}
-            notStartedCourses={notStartedCourses}
-            totalPages={totalPages}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            setSearchTerm={setSearchTerm}
-            setFilters={setFilters}
-            categories={categories}
-            navigate={navigate}
-            filters={filters}
-            searchTerm={searchTerm}
-            continueLearning={continueLearning}
+          <CoursesContent 
             onCourseSelect={handleCourseSelect}
           />
         );
@@ -160,10 +83,7 @@ const StudentDashboard = () => {
         return <NotificationContent />;
       default:
         return (
-          <DashboardContent
-            inProgressCourses={inProgressCourses}
-            completedCourses={completedCourses}
-            enrolledCourses={enrolledCourses}
+          <DashboardContent 
             onCourseSelect={handleCourseSelect}
           />
         );

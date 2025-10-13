@@ -2,10 +2,49 @@ import { X, LayoutDashboard, BookOpen, Award, User, LogOut, Sun, Moon, Bell } fr
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../App';
 import { logout } from '../../api/auth';
+import { useAuth } from '../../context/AuthContext';
+import { getInAppNotifications } from '../../api/notification';
+import { useState, useEffect } from 'react';
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, setSelectedCourse, setSelectedLesson }) => {
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch unread notification count
+  const fetchUnreadCount = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const notifications = await getInAppNotifications(user.id);
+      const unread = notifications.filter(notification => !notification.read).length;
+      setUnreadCount(unread);
+    } catch (error) {
+      console.error('Failed to fetch notification count:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+    
+    // Poll for updates every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
+  // Listen for notification read events
+  useEffect(() => {
+    const handleNotificationRead = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('notificationRead', handleNotificationRead);
+    return () => {
+      window.removeEventListener('notificationRead', handleNotificationRead);
+    };
+  }, [user?.id]);
+  
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'courses', label: 'My Courses', icon: BookOpen },
@@ -17,7 +56,10 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, set
   return (
     <div className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out will-change-transform`}>
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-2">
+        <div
+          className="flex items-center space-x-2 cursor-pointer"
+          onClick={() => navigate('/')}
+        >
           <img 
             src="/logo-levelup.svg" 
             alt="LevelUp" 
@@ -46,7 +88,9 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, set
               }}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === item.id ? 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
             >
-              <Icon className="w-5 h-5" />
+              <div className="relative">
+                <Icon className="w-5 h-5" />
+              </div>
               <span className="font-medium">{item.label}</span>
             </button>
           );

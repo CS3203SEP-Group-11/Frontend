@@ -38,7 +38,6 @@ export async function createLesson(lessonData) {
 
 export async function updateLesson(lessonId, lessonData) {
   try {
-    console.log('Updating lesson:', lessonId, lessonData);
     const response = await api.put(`/lessons/${lessonId}`, lessonData);
     return response.data;
   } catch (err) {
