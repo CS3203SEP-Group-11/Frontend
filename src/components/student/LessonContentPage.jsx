@@ -1,28 +1,40 @@
-import { use, useEffect, useState } from 'react';
-import { ArrowLeft, Play, Pause, Download, FileText, Video, Text, FileQuestionMark, CheckCircle, X, RotateCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Download, FileText, Video, Text, FileQuestionMark, CheckCircle } from 'lucide-react';
 import VideoPlayer from '../VideoPlayer';
 import { markLessonCompleted } from '../../api/enrollment';
-import { getQuizDataById } from '../../api/quiz';
+import { getQuizDataById, getUserQuizAttempts, createQuizAttempt, submitQuizAttempt } from '../../api/quiz';
 import { useAuth } from '../../context/AuthContext';
-import { getUserQuizAttempts } from '../../api/quiz';
 
 const LessonContentPage = ({ lesson, course, onBack, enrollmentId }) => {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizData, setQuizData] = useState(null);
+  const [selectedAnswers, setSelectedAnswers] = useState({}); // { [questionId]: optionId }
   const [quizAttempts, setQuizAttempts] = useState([]);
+  const [attemptStarted, setAttemptStarted] = useState(false);
+  const [currentAttempt, setCurrentAttempt] = useState(null);
   const { user } = useAuth()
 
-  const handleQuizAnswer = (questionId, answerIndex) => {
+  const handleQuizAnswer = (questionId, optionId) => {
     if (!quizSubmitted) {
-      setSelectedQuizAnswers(prev => ({
-        ...prev,
-        [questionId]: answerIndex
-      }));
+      setSelectedAnswers(prev => ({ ...prev, [questionId]: optionId }));
     }
   };
 
   useEffect(() => {
     console.log('Lesson content:', lesson);
+  }, [lesson]);
+
+  // Auto-load quiz data when opening a QUIZ lesson
+  useEffect(() => {
+    const ct = String(lesson?.contentType || lesson?.type || '').toUpperCase();
+    if (ct === 'QUIZ' && lesson?.quizId) {
+      getQuizData();
+      // reset attempt state when switching lessons
+      setAttemptStarted(false);
+      setSelectedAnswers({});
+      setQuizSubmitted(false);
+      setQuizAttempts([]);
+    }
   }, [lesson]);
 
   const markAsComplete = async () => {
@@ -40,45 +52,57 @@ const LessonContentPage = ({ lesson, course, onBack, enrollmentId }) => {
     }
   };
 
-  const submitQuiz = () => {
-    // if (!lesson.content.questions) return;
-    
-    // let correct = 0;
-    // lesson.content.questions.forEach(question => {
-    //   if (selectedQuizAnswers[question.id] === question.correctAnswer) {
-    //     correct++;
-    //   }
-    // });
-    
-    // setQuizScore(correct);
-    // setQuizSubmitted(true);
-    // setShowExplanations(true);
-    
-    // // Auto-complete if score is 80% or higher
-    // if (correct / lesson.content.questions.length >= 0.8) {
-    //   markAsComplete();
-    // }
+  const startAttempt = async () => {
+    const userQuizAttempts = await getUserQuizAttempts(lesson.quizId, user.id);
+    if (userQuizAttempts && userQuizAttempts.length >= quizData.attemptLimit) {
+      alert('You have reached the maximum number of attempts for this quiz.');
+      return;
+    }
+    const newAttempt = await createQuizAttempt(lesson.quizId, user.id);
+    setCurrentAttempt(newAttempt);
+    setAttemptStarted(true);
+  }
+
+  const submitQuiz = async () => {
+    if (!quizData?.questions?.length) return;
+    const submission = {
+      quizId: quizData.id,
+      lessonId: quizData.lessonId,
+      userId: user?.id,
+      attemptedAt: new Date().toISOString(),
+      responses: quizData.questions.map(q => ({
+        questionId: q.id,
+        selectedOptionId: selectedAnswers[q.id] || null,
+      })),
+    };
+    await submitQuizAttempt(quizData.id, currentAttempt.id, submission.responses);
+    setQuizSubmitted(true);
+    setAttemptStarted(false);
   };
 
   const getQuizData = async () => {
     const quizData = await getQuizDataById(lesson.quizId);
     setQuizData(quizData);
-    const userQuizAttempts = await getUserQuizAttempts(user.id, lesson.quizId);
-    setQuizAttempts(userQuizAttempts);
-
-    if (userQuizAttempts.length >= quizData.attemptLimit) {
-      alert('You have reached the maximum number of attempts for this quiz.');
-      return;
+    if (user?.id) {
+      try {
+        const userQuizAttempts = await getUserQuizAttempts(lesson.quizId, user.id);
+        console.log('User quiz attempts:', userQuizAttempts);
+        setQuizAttempts(Array.isArray(userQuizAttempts) ? userQuizAttempts : []);
+        if (userQuizAttempts && userQuizAttempts.length > 0) {
+          setCurrentAttempt(userQuizAttempts[userQuizAttempts.length - 1]);
+        } else {
+          setCurrentAttempt(null);
+        }
+      } catch (e) {
+        console.error('Failed to load quiz attempts', e);
+        setQuizAttempts([]);
+        setCurrentAttempt(null);
+      }
+    } else {
+      setQuizAttempts([]);
+      setCurrentAttempt(null);
     }
-
-    console.log('Fetched quiz data:', quizData);
-  };
-
-  const resetQuiz = () => {
-    setSelectedQuizAnswers({});
-    setQuizSubmitted(false);
-    setQuizScore(0);
-    setShowExplanations(false);
+    console.log('Loaded quiz data:', quizData);
   };
 
   const getLessonIcon = (type) => {
@@ -143,7 +167,113 @@ const LessonContentPage = ({ lesson, course, onBack, enrollmentId }) => {
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Quiz: {lesson.title}</h2>
-        <button onClick={getQuizData} className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Load Quiz Data</button>
+        {!quizData ? (
+          <p className="text-gray-600 dark:text-gray-300">Loading quiz...</p>
+        ) : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="text-gray-500 dark:text-gray-400">Passing Score:</span>
+                <span className="ml-2 text-gray-900 dark:text-white">{quizData.passingScore}%</span>
+              </div>
+              <div>
+                <span className="text-gray-500 dark:text-gray-400">Time Limit:</span>
+                <span className="ml-2 text-gray-900 dark:text-white">{quizData.timeLimit} min</span>
+              </div>
+              <div>
+                <span className="text-gray-500 dark:text-gray-400">Attempt Limit:</span>
+                <span className="ml-2 text-gray-900 dark:text-white">{quizData.attemptLimit}</span>
+              </div>
+            </div>
+            {!attemptStarted && Array.isArray(quizAttempts) && quizAttempts.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Your Attempts ({quizAttempts.length})</h3>
+                <div className="overflow-x-auto -mx-2 sm:mx-0">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700/50">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Attempt #</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Status</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Passed</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Score</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Started</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Completed</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {quizAttempts.map((a) => (
+                        <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{a.attemptNumber ?? '-'}</td>
+                          <td className="px-3 py-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">{a.status ?? '-'}</span>
+                          </td>
+                          <td className="px-3 py-2">
+                            {a.passed === true ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">Yes</span>
+                            ) : a.passed === false ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">No</span>
+                            ) : (
+                              <span className="text-gray-600 dark:text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{a.score ?? '-'}</td>
+                          <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{a.startedAt ? new Date(a.startedAt).toLocaleString() : '-'}</td>
+                          <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{a.completedAt ? new Date(a.completedAt).toLocaleString() : '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {!attemptStarted ? (
+              <div className="flex justify-end">
+                <button
+                  onClick={startAttempt}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Attempt Quiz
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-6">
+                  {quizData.questions.map((q, idx) => (
+                    <div key={q.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-6">
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-4">{idx + 1}. {q.questionText}</h4>
+                      <div className="space-y-2">
+                        {q.options.map((opt) => {
+                          const checked = selectedAnswers[q.id] === opt.id;
+                          return (
+                            <label key={opt.id} className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors cursor-pointer ${checked ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+                              <input
+                                type="radio"
+                                name={`q-${q.id}`}
+                                checked={checked}
+                                onChange={() => handleQuizAnswer(q.id, opt.id)}
+                                className="form-radio text-primary-600"
+                              />
+                              <span className="text-gray-900 dark:text-gray-100">{opt.optionText}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-end mt-4">
+                  <button
+                    onClick={submitQuiz}
+                    disabled={quizSubmitted || quizData.questions.some(q => !selectedAnswers[q.id])}
+                    className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Submit Answers
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>  
   );

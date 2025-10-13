@@ -118,4 +118,12 @@ export const getUserQuizAttempts = async (quizId, userId) => {
   }
 };  
 
-
+export const submitQuizAttempt = async (quizId, attemptId, answers) => {
+  try {
+    const response = await api.post(`/assessments/quizzes/${quizId}/attempts/${attemptId}/user-answers`, { answers });
+    return response.data;
+  } catch (error) {
+    console.error('Error submitting quiz attempt:', error);
+    throw error;
+  }
+};
