@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Elements, useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 
 function PaymentForm({ onClose, onSuccess }) {
   const stripe = useStripe();
@@ -75,7 +74,16 @@ function PaymentForm({ onClose, onSuccess }) {
 
 export default function StripeCheckout({ clientSecret, onClose, onSuccess }) {
   const pk = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-  const stripePromise = useMemo(() => loadStripe(pk), [pk]);
+  
+  // Use the globally loaded Stripe instead of loadStripe
+  const stripePromise = useMemo(() => {
+    if (window.Stripe) {
+      return Promise.resolve(window.Stripe(pk));
+    }
+    // Fallback to dynamic loading if global Stripe is not available
+    return import('@stripe/stripe-js').then(({ loadStripe }) => loadStripe(pk));
+  }, [pk]);
+  
   const options = useMemo(() => ({
     clientSecret,
     appearance: { theme: 'stripe' },
