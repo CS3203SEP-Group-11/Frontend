@@ -2,7 +2,7 @@ name: Build and Deploy Frontend Student
 
 on:
   push:
-    branches: [ deployment ]     # Build + deploy on this branch
+    branches: [ deploy ]     # Build + deploy on this branch
 
 env:
   GKE_CLUSTER: autopilot-cluster-1
