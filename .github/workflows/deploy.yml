@@ -2,13 +2,11 @@ name: Build and Deploy Frontend Student
 
 on:
   push:
-    branches: [ deployment ]     # Run build+deploy when pushing to 'deployment' branch
-  pull_request:
-    branches: [ main ]           # Run test build when PR created to main (no deploy)
+    branches: [ deployment ]     # Build + deploy on this branch
 
 env:
-  GKE_CLUSTER: levelup-cluster
-  GKE_ZONE: asia-south1-a
+  GKE_CLUSTER: autopilot-cluster-1
+  GKE_ZONE: asia-south1
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   IMAGE_NAME: levelup-frontend
@@ -16,9 +14,9 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    # 1Checkout code
+    # 1️ Checkout code
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -44,19 +42,19 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    # 6️ Build Docker image (two tags: unique + latest)
+    # 6️ Build Docker image (two tags: commit SHA + latest)
     - name: Build Docker image
       run: |
         docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:$GITHUB_SHA \
                      -t $DOCKERHUB_USERNAME/$IMAGE_NAME:latest .
 
-    # 7️ Push both images to Docker Hub
+    # 7️ Push Docker images
     - name: Push Docker image
       run: |
         docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:$GITHUB_SHA
         docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:latest
 
-    # 8️ Authenticate to Google Cloud (new method)
+    # 8️ Authenticate to Google Cloud
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
       with:
@@ -68,12 +66,23 @@ jobs:
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-    #  Deploy to GKE (only if pushing to 'deployment' branch)
-    - name: Deploy to GKE
-      if: github.ref == 'refs/heads/deployment'
+    # 10 Install GKE Auth Plugin (required for Autopilot)
+    - name: Install GKE Auth Plugin
       run: |
-        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE
+        gcloud components install gke-gcloud-auth-plugin -q
+
+    # 1️1️ Deploy to GKE (only on vhbranch3 push)
+    - name: Deploy to GKE
+      if: github.ref == 'refs/heads/vhbranch3'
+      run: |
+        # Get cluster credentials
+        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
+
+        # Update deployment image
         kubectl set image deployment/frontend-student \
           frontend-student=$DOCKERHUB_USERNAME/$IMAGE_NAME:$GITHUB_SHA \
           --namespace=levelup-learning
+
+        # Wait for rollout to complete
         kubectl rollout status deployment/frontend-student --namespace=levelup-learning
+

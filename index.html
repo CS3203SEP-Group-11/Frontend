@@ -5,6 +5,30 @@
     <link rel="icon" type="image/svg+xml" href="/logo-levelup.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LevelUp Learning Platform</title>
+    
+    <!-- Comprehensive CSP for Stripe, backend API, Google OAuth, and Cloudflare -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://accounts.google.com https://static.cloudflareinsights.com https://apis.google.com; frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://accounts.google.com; connect-src 'self' https://api.levelups.app https://*.levelups.app https://api.stripe.com https://q.stripe.com https://m.stripe.com https://m.stripe.network https://js.stripe.com https://accounts.google.com https://oauth2.googleapis.com https://cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; media-src 'self' data:; worker-src 'self' blob: https://js.stripe.com https://m.stripe.network; child-src 'self' blob: https://js.stripe.com;">>
+    
+    <!-- Preload Stripe.js to ensure it loads before our React app -->
+    <script src="https://js.stripe.com/v3/" async crossorigin="anonymous"></script>
+    
+    <!-- Debug script to check CSP and environment -->
+    <script>
+      console.log('CSP Debug: Document CSP from meta tag:', document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content);
+      
+      // Also log any CSP violations
+      document.addEventListener('securitypolicyviolation', (e) => {
+        console.error('CSP Violation:', e.violatedDirective, 'blocked:', e.blockedURI);
+      });
+      
+      // Check if Stripe is loaded
+      window.addEventListener('load', () => {
+        console.log('Stripe loaded globally:', !!window.Stripe);
+        if (window.Stripe) {
+          console.log('Stripe version:', window.Stripe.version);
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
