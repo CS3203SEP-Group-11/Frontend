@@ -6,22 +6,13 @@ import DashboardContent from '../components/instructor/DashboardContent';
 import CoursesContent from '../components/instructor/CoursesContent';
 import CreateCourseContent from '../components/instructor/CreateCourseContent';
 import EditCourseContent from '../components/instructor/EditCourseContent';
-import SubmissionsContent from '../components/instructor/SubmissionsContent';
 import ProfileContent from '../components/instructor/ProfileContent';
 import { useTheme } from '../App';
-import { instructorUser, courses } from '../data/dummyData';
 
 const InstructorDashboard = () => {
-  const { isDarkMode, toggleTheme } = useTheme()
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [editingCourseId, setEditingCourseId] = useState(null)
-
-  // Filter instructor's courses
-  const instructorCourses = courses.filter(course => 
-    instructorUser.createdCourses?.includes(course.id)
-  )
 
   const handleEditCourse = (courseId) => {
     setEditingCourseId(courseId);
@@ -43,8 +34,6 @@ const InstructorDashboard = () => {
         return <CreateCourseContent />;
       case 'edit-course':
         return <EditCourseContent courseId={editingCourseId} onBack={handleBackFromEdit} />;
-      case 'submissions':
-        return <SubmissionsContent />;
       case 'profile':
         return <ProfileContent />;
       default:

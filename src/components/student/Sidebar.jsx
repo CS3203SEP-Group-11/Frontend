@@ -50,13 +50,16 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, set
     { id: 'courses', label: 'My Courses', icon: BookOpen },
     { id: 'certificates', label: 'Certificates', icon: Award },
     { id: 'profile', label: 'Profile', icon: User },
-    { id: 'notifications', label: 'Notifications', icon: Bell, badge: unreadCount },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
   return (
     <div className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out will-change-transform`}>
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-2">
+        <div
+          className="flex items-center space-x-2 cursor-pointer"
+          onClick={() => navigate('/')}
+        >
           <img 
             src="/logo-levelup.svg" 
             alt="LevelUp" 
@@ -87,11 +90,6 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab, set
             >
               <div className="relative">
                 <Icon className="w-5 h-5" />
-                {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                    {item.badge > 99 ? '99+' : item.badge}
-                  </span>
-                )}
               </div>
               <span className="font-medium">{item.label}</span>
             </button>

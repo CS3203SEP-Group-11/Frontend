@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getMyProfile } from '../api/user';
-import { setCurrentUserId } from '../api/axios';
 
 /**
  * @typedef {import('../types/user').User} User
@@ -12,7 +11,7 @@ import { setCurrentUserId } from '../api/axios';
  * @property {(user: User|null) => void} setUser
  * @property {boolean} isLoggedIn
  * @property {(isLoggedIn: boolean) => void} setIsLoggedIn
- * @property {isSubscribed: boolean} isSubscribed
+ * @property {boolean} loading
  * @property {() => Promise<void>} refreshUser
  */
 
@@ -23,17 +22,18 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchUser = async () => {
     try {
       const user = await getMyProfile();
       setUser(user);
       setIsLoggedIn(true);
-      setCurrentUserId(user?.id || null);
     } catch (err) {
       setUser(null);
       setIsLoggedIn(false);
-      setCurrentUserId(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, isLoggedIn, setIsLoggedIn, refreshUser }}>
+    <AuthContext.Provider value={{ user, setUser, isLoggedIn, setIsLoggedIn, refreshUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

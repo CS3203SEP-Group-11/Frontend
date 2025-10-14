@@ -25,6 +25,11 @@ const DashboardContent = () => {
       setTotalStudents(
         coursesData.reduce((acc, course) => acc + (course.enrollmentCount || 0), 0)
       );
+      const earnings = coursesData.reduce((acc, course) => {
+        const courseEarnings = (course.enrollmentCount || 0) * (course.priceAmount || 0) * 0.8;
+        return acc + courseEarnings;
+      }, 0);
+      setTotalEarnings(earnings);
       
     } catch (err) {
       console.error('Error fetching courses:', err);
@@ -124,7 +129,7 @@ const DashboardContent = () => {
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-gray-600 dark:text-gray-400">Revenue</p>
-                  <p className="font-semibold text-gray-900 dark:text-white">{course.priceCurrency} {(course.enrollmentCount * course.priceAmount).toLocaleString()}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{course.priceCurrency} {(course.enrollmentCount * course.priceAmount * (0.8)).toLocaleString()}</p>
                 </div>
                 <button 
                   className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"

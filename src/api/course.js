@@ -83,3 +83,15 @@ export async function updateCourse(courseId, courseData) {
     throw err;
   }
 }
+
+export async function rateCourse(courseId, rating) {
+  try {
+    const response = await api.post(`/courses/rate/${courseId}/${rating}`);
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Failed to rate course');
+    }
+    throw err;
+  }
+}

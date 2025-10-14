@@ -15,24 +15,21 @@ import {
   Tag,
   Mail,
   ExternalLink,
-  Linkedin
+  Linkedin,
+  RefreshCw
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { getCourseById } from '../api/course';
-import { getInstructorById } from '../api/user';
 import Breadcrumb from '../components/Breadcrumb'
 import { useCart } from '../context/CartContext';
 import { buyCourses } from '../api/payments';
 import StripeCheckout from '../components/StripeCheckout';
+import { useCourseDetail } from '../hooks/useCourseDetail';
 
 const CourseDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [course, setCourse] = useState(null);
-  const [instructor, setInstructor] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { course, instructor, loading, error, refreshCourse } = useCourseDetail(id);
   const { addToCart } = useCart();
 
   const [showCheckout, setShowCheckout] = useState(false);
@@ -46,29 +43,9 @@ const CourseDetailPage = () => {
     { label: course?.title || 'Course Details', href: `/course/${id}` }
   ]
 
-  useEffect(() => {
-    const fetchCourseData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const courseData = await getCourseById(id);
-        const instructorData = await getInstructorById(courseData.instructorId);
-        setCourse(courseData);
-        setInstructor(instructorData);
-      } catch (err) {
-        console.error('Failed to fetch course:', err);
-        setError(err.message || 'Failed to load course');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCourseData();
-  }, [id]);
-
   const handleBuyNow = async () => {
     if (!course || checkingOut) return;
-    // If course is free, skip checkout flow (placeholder action)
+    
     if (!course.priceAmount) {
       navigate('/courses');
       return;
@@ -163,7 +140,18 @@ const CourseDetailPage = () => {
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
-        <Breadcrumb items={breadcrumbItems} className="mb-6" />
+        <div className="flex items-center justify-between mb-6">
+          <Breadcrumb items={breadcrumbItems} />
+          <button
+            onClick={refreshCourse}
+            disabled={loading}
+            className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50"
+            title="Refresh course data"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="lg:grid lg:grid-cols-3 lg:gap-8">

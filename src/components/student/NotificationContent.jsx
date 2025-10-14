@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getNotifications, getInAppNotifications, markInAppNotificationRead } from '../../api/notification';
+import { BellOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const NotificationContent = () => {
@@ -105,9 +106,7 @@ const NotificationContent = () => {
       ) : notificationsList.length === 0 ? (
         <div className="text-center py-12">
           <div className="bg-gray-100 dark:bg-gray-800 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12 7H4.828z" />
-            </svg>
+            <BellOff className="w-10 h-10 text-gray-400 dark:text-gray-500" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No notifications yet</h3>
           <p className="text-gray-600 dark:text-gray-400">You'll see notifications about your courses and account here</p>

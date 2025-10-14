@@ -24,5 +24,17 @@ export async function getMySubscriptions() {
   }
 }
 
+export async function cancelMySubscription(subscriptionId) {
+  try {
+    const response = await api.post(`/subscriptions/${subscriptionId}/cancel`);
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Failed to cancel subscription');
+    }
+    throw err;
+  }
+}
+
 
 
