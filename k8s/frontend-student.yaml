@@ -6,7 +6,7 @@ metadata:
   labels:
     app: frontend-student
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: frontend-student
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: frontend-student
-        image: yourusername/levelup-frontend:latest
+        image: surajahasarinda/levelup-frontend:latest
         ports:
         - containerPort: 80
         resources:
