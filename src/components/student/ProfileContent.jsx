@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useEffect, useRef, useState } from 'react';
 import { updateUserById } from '../../api/user';
 import { getMySubscriptions } from '../../api/subscriptions';
-import { applyForInstructor, getInstructorApplicationStatus } from '../../api/instructor'; // You need to create these APIs
+import { submitInstructorApplication, getMyLatestInstructorApplication } from '../../api/instructorApplication';
 import Modal from '../Modal';
 
 const ProfileContent = () => {
@@ -20,10 +20,9 @@ const ProfileContent = () => {
   const [subsError, setSubsError] = useState('');
   const [showInstructorForm, setShowInstructorForm] = useState(false);
   const [instructorForm, setInstructorForm] = useState({
+    experienceYears: '',
     bio: '',
     expertise: '',
-    linkedin: '',
-    website: '',
   });
   const [applicationStatus, setApplicationStatus] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
@@ -65,11 +64,11 @@ const ProfileContent = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch application status if user is student
-    if (user?.role === 'student') {
+    // Fetch latest application if user is not INSTRUCTOR or ADMIN
+    if (user?.role?.toUpperCase() === 'USER') {
       setAppLoading(true);
-      getInstructorApplicationStatus(user.id)
-        .then(status => setApplicationStatus(status))
+      getMyLatestInstructorApplication()
+        .then(latest => setApplicationStatus(latest?.status || null))
         .catch(() => setApplicationStatus(null))
         .finally(() => setAppLoading(false));
     }
@@ -124,11 +123,26 @@ const ProfileContent = () => {
     setInstructorForm(f => ({ ...f, [name]: value }));
   };
 
-  const handleInstructorSubmit = (e) => {
+  const handleInstructorSubmit = async (e) => {
     e.preventDefault();
-    setApplicationSubmitted(true);
-    setShowInstructorForm(false);
-    // No API call needed for now
+    setAppLoading(true);
+    setAppError('');
+    try {
+      const payload = {
+        experienceYears: instructorForm.experienceYears ? Number(instructorForm.experienceYears) : null,
+        bio: instructorForm.bio,
+        expertise: instructorForm.expertise,
+      };
+      await submitInstructorApplication(payload);
+      const latest = await getMyLatestInstructorApplication();
+      setApplicationStatus(latest?.status || 'PENDING');
+      setApplicationSubmitted(true);
+      setShowInstructorForm(false);
+    } catch (err) {
+      setAppError(err.message || 'Failed to submit application');
+    } finally {
+      setAppLoading(false);
+    }
   };
 
   return (
@@ -256,9 +270,9 @@ const ProfileContent = () => {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Become an Instructor</h3>
           {appLoading ? (
             <p>Loading application status...</p>
-          ) : applicationStatus === 'pending' ? (
+          ) : applicationStatus === 'PENDING' ? (
             <p className="text-yellow-600">Your application is pending review.</p>
-          ) : applicationStatus === 'approved' ? (
+          ) : applicationStatus === 'APPROVED' ? (
             <p className="text-green-600">You are now an instructor!</p>
           ) : applicationSubmitted ? (
             <p className="text-yellow-600">Application submitted.</p>
@@ -271,6 +285,18 @@ const ProfileContent = () => {
         </div>
         <Modal isOpen={showInstructorForm} onClose={() => setShowInstructorForm(false)} title="Instructor Application">
           <form onSubmit={handleInstructorSubmit}>
+            <div>
+              <label className="block text-sm font-medium mb-1">Years of Experience</label>
+              <input
+                name="experienceYears"
+                type="number"
+                min={0}
+                value={instructorForm.experienceYears}
+                onChange={handleInstructorFormChange}
+                className="w-full px-4 py-2 border rounded-lg"
+                placeholder="e.g. 3"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium mb-1">Bio</label>
               <textarea
@@ -291,26 +317,6 @@ const ProfileContent = () => {
                 required
                 className="w-full px-4 py-2 border rounded-lg"
                 placeholder="e.g. React, Node.js, Data Science"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">LinkedIn</label>
-              <input
-                name="linkedin"
-                value={instructorForm.linkedin}
-                onChange={handleInstructorFormChange}
-                className="w-full px-4 py-2 border rounded-lg"
-                placeholder="LinkedIn profile URL"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Website</label>
-              <input
-                name="website"
-                value={instructorForm.website}
-                onChange={handleInstructorFormChange}
-                className="w-full px-4 py-2 border rounded-lg"
-                placeholder="Personal website URL"
               />
             </div>
             <div className="flex space-x-4 mt-4">

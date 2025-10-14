@@ -87,3 +87,4 @@ jobs:
 
         # Wait for rollout to complete
         kubectl rollout status deployment/frontend-student --namespace=levelup-learning
+
