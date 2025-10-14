@@ -73,7 +73,6 @@ jobs:
 
     # 1️1️ Deploy to GKE (only on vhbranch3 push)
     - name: Deploy to GKE
-      if: github.ref == 'refs/heads/vhbranch3'
       run: |
         # Get cluster credentials
         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
