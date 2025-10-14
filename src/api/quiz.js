@@ -96,3 +96,34 @@ export const deleteQuizById = async (quizId) => {
     throw error;
   }
 };
+
+
+export const createQuizAttempt = async (quizId, userId) => {
+  try {
+    const response = await api.post(`/assessments/quizzes/${quizId}/attempts`, { userId });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating quiz attempt:', error);
+    throw error;
+  }
+};
+
+export const getUserQuizAttempts = async (quizId, userId) => {
+  try {
+    const response = await api.get(`/assessments/attempts/user/${userId}/quiz/${quizId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user quiz attempts:', error);
+    throw error;
+  }
+};  
+
+export const submitQuizAttempt = async (quizId, attemptId, answers) => {
+  try {
+    const response = await api.post(`/assessments/quizzes/${quizId}/attempts/${attemptId}/user-answers`, { answers });
+    return response.data;
+  } catch (error) {
+    console.error('Error submitting quiz attempt:', error);
+    throw error;
+  }
+};

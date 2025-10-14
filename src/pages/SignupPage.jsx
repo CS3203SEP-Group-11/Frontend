@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Mail, Lock, User, Check } from 'lucide-react'
-import { useTheme } from '../App'
 import { googleSignup, signup } from '../api/auth'
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext'
 
 const SignupPage = () => {
-  const { isDarkMode } = useTheme()
   const { refreshUser } = useAuth()
   const navigate = useNavigate()
   const [formData, setFormData] = useState({

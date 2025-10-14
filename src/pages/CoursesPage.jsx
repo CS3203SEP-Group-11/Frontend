@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { getAllCourses } from '../api/course'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -7,11 +6,12 @@ import CourseCard from '../components/CourseCard'
 import SearchAndFilter from '../components/SearchAndFilter'
 import Pagination from '../components/Pagination'
 import Breadcrumb from '../components/Breadcrumb'
-import { Grid, List, Filter, SortDesc, SortAsc } from 'lucide-react'
+import { Grid, List, Filter, SortDesc, SortAsc, RefreshCw } from 'lucide-react'
+import { useCourses } from '../hooks/useCourses'
 
 const CoursesPage = () => {
   const navigate = useNavigate()
-  const [courses, setCourses] = useState([])
+  const { courses, loading, error, refreshCourses } = useCourses()
   const [filteredCourses, setFilteredCourses] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({ category: null, level: null })
@@ -24,19 +24,6 @@ const CoursesPage = () => {
   // Get unique categories and levels from courses
   const categories = ['All Categories', ...new Set(courses.map(course => course.category).filter(Boolean))]
   const levels = ['All Levels', ...new Set(courses.map(course => course.level).filter(Boolean))]
-
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const data = await getAllCourses();
-        console.log('Fetched courses:', data)
-        setCourses(data);
-      } catch (err) {
-        console.error('Failed to fetch courses:', err.message);
-      }
-    };
-    fetchCourses();
-  }, [])
 
   // Filter and sort courses
   useEffect(() => {
@@ -150,6 +137,16 @@ const CoursesPage = () => {
             <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               Showing {startIndex + 1}-{Math.min(startIndex + coursesPerPage, filteredCourses.length)} of {filteredCourses.length} courses
             </p>
+            {/* Refresh Button */}
+            <button
+              onClick={refreshCourses}
+              disabled={loading}
+              className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50"
+              title="Refresh courses"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full lg:w-auto">
@@ -206,7 +203,29 @@ const CoursesPage = () => {
         </div>
 
         {/* Courses Grid/List */}
-        {paginatedCourses.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Filter className="w-12 h-12 text-red-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              Error Loading Courses
+            </h3>
+            <p className="text-red-600 dark:text-red-400 mb-6">
+              {error}
+            </p>
+            <button
+              onClick={refreshCourses}
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : paginatedCourses.length > 0 ? (
           <>
             <div className={
               viewMode === 'grid'

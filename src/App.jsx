@@ -10,6 +10,8 @@ import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import PricingPage from './pages/PricingPage'
 import ShoppingCartPage from './pages/ShoppingCartPage'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute, { GuestOnlyRoute } from './routes/ProtectedRoute'
 
 // Theme Context for dark mode
 const ThemeContext = createContext()
@@ -36,24 +38,50 @@ function App() {
 
   return (
     <ThemeContext.Provider value={themeValue}>
-      <div className={isDarkMode ? 'dark' : ''}>
-        <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-          <Router>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/courses" element={<CoursesPage />} />
-              <Route path="/cart" element={<ShoppingCartPage />} />
-              <Route path="/course/:id" element={<CourseDetailPage />} />
-              <Route path="/student-dashboard" element={<StudentDashboard />} />
-              <Route path="/instructor-dashboard" element={<InstructorDashboard />} />
-              <Route path="/pricing" element={<PricingPage />} />
-            </Routes>
-          </Router>
+      <AuthProvider>
+        <div className={isDarkMode ? 'dark' : ''}>
+          <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+            <Router>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+
+                <Route path="/login" element={
+                  <GuestOnlyRoute>
+                    <LoginPage />
+                  </GuestOnlyRoute>
+                } />
+                <Route path="/signup" element={
+                  <GuestOnlyRoute>
+                    <SignupPage />
+                  </GuestOnlyRoute>
+                } />
+                <Route path="/forgot-password" element={
+                  <GuestOnlyRoute>
+                    <ForgotPasswordPage />
+                  </GuestOnlyRoute>
+                } />
+
+                <Route path="/courses" element={<CoursesPage />} />
+                <Route path="/cart" element={<ShoppingCartPage />} />
+                <Route path="/course/:id" element={<CourseDetailPage />} />
+
+                <Route path="/student-dashboard" element={
+                  <ProtectedRoute allowedRoles={["USER", "INSTRUCTOR"]}>
+                    <StudentDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/instructor-dashboard" element={
+                  <ProtectedRoute allowedRoles={["INSTRUCTOR"]}>
+                    <InstructorDashboard />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/pricing" element={<PricingPage />} />
+              </Routes>
+            </Router>
+          </div>
         </div>
-      </div>
+      </AuthProvider>
     </ThemeContext.Provider>
   )
 }

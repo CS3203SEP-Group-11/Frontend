@@ -1,10 +1,10 @@
 import Breadcrumb from '../Breadcrumb';
-import { User } from 'lucide-react';
+import { User, Crown, DollarSign, CreditCard, BadgeCheck, Loader2, XCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useEffect, useRef, useState } from 'react';
 import { updateUserById } from '../../api/user';
-import { getMySubscriptions } from '../../api/subscriptions';
-import { applyForInstructor, getInstructorApplicationStatus } from '../../api/instructor'; // You need to create these APIs
+import { getMySubscriptions, cancelMySubscription } from '../../api/subscriptions';
+import { submitInstructorApplication, getMyLatestInstructorApplication } from '../../api/instructorApplication';
 import Modal from '../Modal';
 
 const ProfileContent = () => {
@@ -15,15 +15,15 @@ const ProfileContent = () => {
   const [lastName, setLastName] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [subscriptions, setSubscriptions] = useState([]);
+  const [subscription, setSubscription] = useState(null);
   const [subsLoading, setSubsLoading] = useState(false);
   const [subsError, setSubsError] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
   const [showInstructorForm, setShowInstructorForm] = useState(false);
   const [instructorForm, setInstructorForm] = useState({
+    experienceYears: '',
     bio: '',
     expertise: '',
-    linkedin: '',
-    website: '',
   });
   const [applicationStatus, setApplicationStatus] = useState(null);
   const [appLoading, setAppLoading] = useState(false);
@@ -53,8 +53,8 @@ const ProfileContent = () => {
       setSubsLoading(true);
       setSubsError('');
       try {
-        const data = await getMySubscriptions();
-        setSubscriptions(Array.isArray(data) ? data : (data?.items || []));
+        const userSubscriptionData = await getMySubscriptions();
+        setSubscription(userSubscriptionData || null);
       } catch (e) {
         setSubsError(e.message || 'Failed to load subscriptions');
       } finally {
@@ -65,11 +65,11 @@ const ProfileContent = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch application status if user is student
-    if (user?.role === 'student') {
+    // Fetch latest application if user is not INSTRUCTOR or ADMIN
+    if (user?.role?.toUpperCase() === 'USER') {
       setAppLoading(true);
-      getInstructorApplicationStatus(user.id)
-        .then(status => setApplicationStatus(status))
+      getMyLatestInstructorApplication()
+        .then(latest => setApplicationStatus(latest?.status || null))
         .catch(() => setApplicationStatus(null))
         .finally(() => setAppLoading(false));
     }
@@ -124,11 +124,26 @@ const ProfileContent = () => {
     setInstructorForm(f => ({ ...f, [name]: value }));
   };
 
-  const handleInstructorSubmit = (e) => {
+  const handleInstructorSubmit = async (e) => {
     e.preventDefault();
-    setApplicationSubmitted(true);
-    setShowInstructorForm(false);
-    // No API call needed for now
+    setAppLoading(true);
+    setAppError('');
+    try {
+      const payload = {
+        experienceYears: instructorForm.experienceYears ? Number(instructorForm.experienceYears) : null,
+        bio: instructorForm.bio,
+        expertise: instructorForm.expertise,
+      };
+      await submitInstructorApplication(payload);
+      const latest = await getMyLatestInstructorApplication();
+      setApplicationStatus(latest?.status || 'PENDING');
+      setApplicationSubmitted(true);
+      setShowInstructorForm(false);
+    } catch (err) {
+      setAppError(err.message || 'Failed to submit application');
+    } finally {
+      setAppLoading(false);
+    }
   };
 
   return (
@@ -219,33 +234,92 @@ const ProfileContent = () => {
         <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Your Subscription Plans</h3>
           {subsLoading && (
-            <p className="text-gray-600 dark:text-gray-400">Loading subscriptions...</p>
+            <div className="flex items-center text-gray-600 dark:text-gray-400 gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Loading subscriptions...</span>
+            </div>
           )}
           {subsError && (
             <p className="text-red-600">{subsError}</p>
           )}
           {!subsLoading && !subsError && (
-            subscriptions.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {subscriptions.map((sub) => (
-                  <div key={sub.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Plan</p>
-                        <p className="text-base font-semibold text-gray-900 dark:text-white">{sub.plan?.name || sub.planName || 'Plan'}</p>
-                      </div>
-                      <span className={`px-2 py-1 text-xs rounded-full ${sub.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} dark:${sub.status === 'ACTIVE' ? 'bg-green-900 text-green-300' : 'bg-gray-700 text-gray-300'}`}>
-                        {sub.status || 'ACTIVE'}
-                      </span>
+            subscription ? (
+              <div className="p-5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 max-w-xl shadow-sm">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center">
+                      <Crown className="w-5 h-5 text-blue-600 dark:text-blue-300" />
                     </div>
-                    <div className="mt-3 text-sm text-gray-600 dark:text-gray-300">
-                      <p>Price: {sub.plan?.price?.amount ? `${sub.plan.price.amount} ${sub.plan.price.currency || ''}` : (sub.price ? `${sub.price}` : '—')}</p>
-                      {sub.start_date && <p>Started: {new Date(sub.start_date).toLocaleDateString()}</p>}
-                      {sub.end_date && <p>Ends: {new Date(sub.end_date).toLocaleDateString()}</p>}
-                      {sub.next_billing_date && <p>Next Billing: {new Date(sub.next_billing_date).toLocaleDateString()}</p>}
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Current Plan</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{subscription.planName || subscription.plan?.name || 'Plan'}</p>
                     </div>
                   </div>
-                ))}
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                    <BadgeCheck className="w-3.5 h-3.5" />
+                    ACTIVE
+                  </span>
+                </div>
+
+                {/* Details */}
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                    <div className="w-8 h-8 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Price</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {(() => {
+                          const amount = Number(subscription.amount);
+                          const currency = (subscription.currency || '').toUpperCase();
+                          try {
+                            return isFinite(amount) && currency
+                              ? new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount)
+                              : `${subscription.amount} ${currency}`.trim();
+                          } catch {
+                            return `${subscription.amount} ${currency}`.trim();
+                          }
+                        })()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                    <div className="w-8 h-8 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                      <CreditCard className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Billing</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">Auto-renewal enabled</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-5 flex justify-end">
+                  <button
+                    onClick={async () => {
+                      if (!subscription?.subscriptionId) return;
+                      if (!confirm('Are you sure you want to cancel your subscription?')) return;
+                      try {
+                        setCancelLoading(true);
+                        await cancelMySubscription(subscription.subscriptionId);
+                        setSubscription(null);
+                        alert('Subscription canceled.');
+                      } catch (err) {
+                        alert(err?.message || 'Failed to cancel subscription');
+                      } finally {
+                        setCancelLoading(false);
+                      }
+                    }}
+                    disabled={cancelLoading}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-60"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    {cancelLoading ? 'Canceling...' : 'Cancel Subscription'}
+                  </button>
+                </div>
               </div>
             ) : (
               <p className="text-gray-600 dark:text-gray-400">You have no active subscriptions.</p>
@@ -256,9 +330,9 @@ const ProfileContent = () => {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Become an Instructor</h3>
           {appLoading ? (
             <p>Loading application status...</p>
-          ) : applicationStatus === 'pending' ? (
+          ) : applicationStatus === 'PENDING' ? (
             <p className="text-yellow-600">Your application is pending review.</p>
-          ) : applicationStatus === 'approved' ? (
+          ) : applicationStatus === 'APPROVED' ? (
             <p className="text-green-600">You are now an instructor!</p>
           ) : applicationSubmitted ? (
             <p className="text-yellow-600">Application submitted.</p>
@@ -271,6 +345,18 @@ const ProfileContent = () => {
         </div>
         <Modal isOpen={showInstructorForm} onClose={() => setShowInstructorForm(false)} title="Instructor Application">
           <form onSubmit={handleInstructorSubmit}>
+            <div>
+              <label className="block text-sm font-medium mb-1">Years of Experience</label>
+              <input
+                name="experienceYears"
+                type="number"
+                min={0}
+                value={instructorForm.experienceYears}
+                onChange={handleInstructorFormChange}
+                className="w-full px-4 py-2 border rounded-lg"
+                placeholder="e.g. 3"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium mb-1">Bio</label>
               <textarea
@@ -291,26 +377,6 @@ const ProfileContent = () => {
                 required
                 className="w-full px-4 py-2 border rounded-lg"
                 placeholder="e.g. React, Node.js, Data Science"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">LinkedIn</label>
-              <input
-                name="linkedin"
-                value={instructorForm.linkedin}
-                onChange={handleInstructorFormChange}
-                className="w-full px-4 py-2 border rounded-lg"
-                placeholder="LinkedIn profile URL"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Website</label>
-              <input
-                name="website"
-                value={instructorForm.website}
-                onChange={handleInstructorFormChange}
-                className="w-full px-4 py-2 border rounded-lg"
-                placeholder="Personal website URL"
               />
             </div>
             <div className="flex space-x-4 mt-4">
