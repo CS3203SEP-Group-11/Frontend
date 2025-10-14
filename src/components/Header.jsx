@@ -136,7 +136,7 @@ const Header = () => {
               <div className="flex items-center space-x-2">
                 {/* Notifications */}
                 <button
-                  onClick={() => navigate('/student-dashboard?tab=notifications')}
+                  onClick={() => navigate('/student-dashboard')}
                   className="relative p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 shadow-sm"
                   aria-label="Notifications"
                 >
