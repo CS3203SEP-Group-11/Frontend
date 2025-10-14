@@ -2,9 +2,7 @@ name: Build and Deploy Frontend Student
 
 on:
   push:
-    branches: [ vhbranch3 ]     # Build + deploy on this branch
-  pull_request:
-    branches: [ main ]           # Only build/test on PR to main
+    branches: [ deployment ]     # Build + deploy on this branch
 
 env:
   GKE_CLUSTER: autopilot-cluster-1
