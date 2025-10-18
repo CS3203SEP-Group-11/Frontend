@@ -12,6 +12,18 @@ export async function buyCourses(courseIds) {
   }
 }
 
+export async function enrollToCoursesWithSubscription(courseIds) {
+  try {
+    const response = await api.post('/payments/subscription-enrollment', { courseIds });
+    return response.data;
+  } catch (err) {
+    if (err.response?.data) {
+      throw new Error(err.response.data.message || 'Failed to enroll with subscription');
+    }
+    throw err;
+  }
+};
+
 export async function buySubscriptionPlan(subscriptionPlanId) {
   try {
     const response = await api.post('/subscriptions/create', { subscriptionPlanId });
