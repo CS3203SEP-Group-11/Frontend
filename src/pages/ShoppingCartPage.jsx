@@ -4,12 +4,14 @@ import { ShoppingCart, Trash2, ArrowLeft, CreditCard, Tag, Clock, User, Star } f
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { useCart } from '../context/CartContext'
-import { buyCourses } from '../api/payments'
+import { buyCourses, enrollToCoursesWithSubscription } from '../api/payments'
 import StripeCheckout from '../components/StripeCheckout';
+import { useAuth } from '../context/AuthContext'
 
 const ShoppingCartPage = () => {
   const navigate = useNavigate()
   const { items: cartItems, removeFromCart, clearCart } = useCart()
+  const { isLoggedIn, user } = useAuth()
 
   const [showCheckout, setShowCheckout] = useState(false)
   const [clientSecret, setClientSecret] = useState(null)
@@ -30,11 +32,15 @@ const ShoppingCartPage = () => {
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal()
-    return subtotal
+    return user?.isSubscribed ? 0 : subtotal
   }
 
   const handleCheckout = async () => {
     if (!cartItems.length || checkingOut) return
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/cart' } })
+      return
+    }
     setCheckoutError(null)
     setCheckingOut(true)
     try {
@@ -48,6 +54,23 @@ const ShoppingCartPage = () => {
       setCheckoutError(e?.message || 'Failed to start checkout')
     } finally {
       setCheckingOut(false)
+    }
+  }
+
+  const handleEnrollWithSubscription = async () => {
+    if (!cartItems.length || checkingOut) return
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: '/cart' } })
+      return
+    }
+    setCheckoutError(null)
+    try {
+      const courseIds = cartItems.map(item => item.id)
+      await enrollToCoursesWithSubscription(courseIds)
+      clearCart()
+      navigate('/courses')
+    } catch (e) {
+      setCheckoutError(e?.message || 'Failed to enroll with subscription')
     }
   }
 
@@ -210,6 +233,12 @@ const ShoppingCartPage = () => {
                     </span>
                   </div>
                 )}
+                {user?.isSubscribed && (
+                  <div className="flex justify-between text-primary-600 dark:text-primary-400">
+                    <span>Subscription discount (100%)</span>
+                    <span className="font-medium">-${calculateSubtotal().toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
                   <div className="flex justify-between">
                     <span className="text-lg font-semibold text-gray-900 dark:text-white">Total</span>
@@ -220,16 +249,29 @@ const ShoppingCartPage = () => {
                 </div>
               </div>
 
-              <button
-                onClick={handleCheckout}
-                disabled={checkingOut}
-                className={`w-full text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 mb-4 ${
-                  checkingOut ? 'bg-primary-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
-                }`}
-              >
-                <CreditCard className="w-5 h-5" />
-                <span>{checkingOut ? 'Preparing payment…' : 'Proceed to Checkout'}</span>
-              </button>
+              {user?.isSubscribed ? (
+                <button
+                  onClick={handleEnrollWithSubscription}
+                  disabled={checkingOut}
+                  className={`w-full border border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900 font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 mb-4 ${
+                    checkingOut ? 'opacity-60 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5" />
+                  <span>{checkingOut ? 'Processing…' : 'Enroll'}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleCheckout}
+                  disabled={checkingOut}
+                  className={`w-full text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 mb-4 ${
+                    checkingOut ? 'bg-primary-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
+                  }`}
+                >
+                  <CreditCard className="w-5 h-5" />
+                  <span>{checkingOut ? 'Preparing payment…' : 'Proceed to Checkout'}</span>
+                </button>
+              )}
 
               {checkoutError && (
                 <p className="text-sm text-red-600 dark:text-red-400 mb-2">{checkoutError}</p>

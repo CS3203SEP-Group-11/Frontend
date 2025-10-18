@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Clock, 
   Users, 
+  Crown,
   BookOpen, 
   Languages, 
   Layers, 
@@ -22,7 +23,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Breadcrumb from '../components/Breadcrumb'
 import { useCart } from '../context/CartContext';
-import { buyCourses } from '../api/payments';
+import { useAuth } from '../context/AuthContext';
+import { buyCourses, enrollToCoursesWithSubscription } from '../api/payments';
 import StripeCheckout from '../components/StripeCheckout';
 import { useCourseDetail } from '../hooks/useCourseDetail';
 
@@ -31,7 +33,7 @@ const CourseDetailPage = () => {
   const navigate = useNavigate();
   const { course, instructor, loading, error, refreshCourse } = useCourseDetail(id);
   const { addToCart } = useCart();
-
+  const { user, isLoggedIn } = useAuth();
   const [showCheckout, setShowCheckout] = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
   const [checkingOut, setCheckingOut] = useState(false);
@@ -45,6 +47,11 @@ const CourseDetailPage = () => {
 
   const handleBuyNow = async () => {
     if (!course || checkingOut) return;
+
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: `/course/${id}` } });
+      return;
+    }
     
     if (!course.priceAmount) {
       navigate('/courses');
@@ -60,6 +67,23 @@ const CourseDetailPage = () => {
       setShowCheckout(true);
     } catch (e) {
       setCheckoutError(e?.message || 'Failed to start checkout');
+    } finally {
+      setCheckingOut(false);
+    }
+  };
+
+  const enrollsWithSubscription = async () => {
+    if (!course || checkingOut) return;
+    if (!isLoggedIn) {
+      navigate('/login', { state: { from: `/course/${id}` } });
+      return;
+    }
+    setCheckoutError(null);
+    try {
+      await enrollToCoursesWithSubscription([course.id]);
+      navigate('/courses');
+    } catch (e) {
+      setCheckoutError(e?.message || 'Failed to enroll with subscription');
     } finally {
       setCheckingOut(false);
     }
@@ -368,21 +392,31 @@ const CourseDetailPage = () => {
 
                 {/* Action Buttons */}
                 <div className="space-y-3 mb-6">
-                  <button
-                    onClick={handleBuyNow}
-                    disabled={checkingOut}
-                    className={`w-full text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 ${
-                      checkingOut ? 'bg-primary-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
-                    }`}
-                  >
-                    <CreditCard className="w-5 h-5" />
-                    <span>{checkingOut ? 'Preparing payment…' : (course.priceAmount ? 'Buy Now' : 'Enroll Free')}</span>
-                  </button>
+                  {!user?.isSubscribed ? (
+                    <button
+                      onClick={handleBuyNow}
+                      disabled={checkingOut}
+                      className={`w-full text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                        checkingOut ? 'bg-primary-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
+                      }`}
+                    >
+                      <CreditCard className="w-5 h-5" />
+                      <span>{checkingOut ? 'Preparing payment…' : (course.priceAmount ? 'Buy Now' : 'Enroll Free')}</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={enrollsWithSubscription}
+                      className="w-full border border-primary-600 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900 font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                    >
+                      <Crown className="w-5 h-5" />
+                      <span>Enroll</span>
+                    </button>
+                  )}
 
                   {checkoutError && (
                     <p className="text-sm text-red-600 dark:text-red-400">{checkoutError}</p>
                   )}
-                  
+
                   {course.priceAmount && (
                     <button
                       onClick={handleAddToCart}
@@ -393,8 +427,6 @@ const CourseDetailPage = () => {
                     </button>
                   )}
                 </div>
-
-                {/* Course Features */}
                 <div className="space-y-4 text-sm">
                   <div className="flex items-center space-x-3">
                     <Calendar className="w-5 h-5 text-gray-400" />
